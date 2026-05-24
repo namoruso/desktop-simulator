@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --os-bg: #07080d;
+  --desktop-bg: #0c1018;
+  --app-bg: rgba(18, 22, 34, 0.95);
+  --menubar-bg: rgba(12, 14, 22, 0.78);
+  --dock-bg: rgba(22, 24, 36, 0.72);
+  --window-bg: rgba(24, 28, 42, 0.92);
+  --window-border: rgba(255, 255, 255, 0.12);
+  --window-shadow: 0 28px 60px -16px rgba(0, 0, 0, 0.65);
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-glow: rgba(99, 102, 241, 0.4);
+  --ui-scale: 1;
+  --state-running: #34d399;
+  --state-ready: #fbbf24;
+  --state-blocked: #f87171;
+  --state-terminated: #94a3b8;
+  --mem-free: #134e3a;
+  --mem-cached: #3b4d6b;
+  --mem-system: #1e3a5f;
+  --mem-user: #5b5bd6;
+  --mem-simulator: #a855f7;
+  --mem-leaked: #dc2626;
+  --font-ui: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-mono-jb), 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--os-bg);
+  color: #e8ecf4;
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Desktop wallpaper */
+.desktop-surface {
+  background-color: var(--desktop-bg);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124, 108, 240, 0.18), transparent),
+    radial-gradient(ellipse 60% 50% at 85% 75%, rgba(56, 189, 248, 0.12), transparent),
+    linear-gradient(165deg, #0c1018 0%, #141a28 40%, #0d1117 100%);
+}
+
+html[data-ui-scale='compact'] {
+  --ui-scale: 0.92;
+  font-size: 14px;
+}
+html[data-ui-scale='comfortable'] {
+  --ui-scale: 1;
+  font-size: 15px;
+}
+html[data-ui-scale='large'] {
+  --ui-scale: 1.08;
+  font-size: 16px;
+}
+
+html.night-mode {
+  --menubar-bg: rgba(6, 8, 14, 0.88);
+  --dock-bg: rgba(10, 12, 20, 0.85);
+  --window-bg: rgba(14, 16, 26, 0.94);
+}
+
+.desktop-wallpaper-aurora,
+.desktop-wallpaper-mountains,
+.desktop-wallpaper-solid,
+.desktop-wallpaper-gradient {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+
+.desktop-wallpaper-aurora {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124, 108, 240, 0.22), transparent),
+    url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920&q=80');
+  opacity: 0.4;
+}
+
+.desktop-wallpaper-mountains {
+  background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80');
+  opacity: 0.38;
+}
+
+.desktop-wallpaper-solid {
+  background-image: none;
+  opacity: 1;
+}
+
+.desktop-wallpaper-gradient {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 10% 20%, rgba(99, 102, 241, 0.35), transparent),
+    radial-gradient(ellipse 60% 45% at 90% 80%, rgba(236, 72, 153, 0.2), transparent),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(34, 211, 238, 0.15), transparent),
+    linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0c1222 100%);
+  opacity: 0.85;
+}
+
+.desktop-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+}
+
+@keyframes boot-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes window-open {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dock-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.window-enter {
+  animation: window-open 180ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.glass-window {
+  background: var(--window-bg);
+  border: 1px solid var(--window-border);
+  box-shadow: var(--window-shadow);
+  backdrop-filter: blur(28px) saturate(1.25);
+  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.app-chrome {
+  background: var(--app-bg);
+}
+
+.glass-window.focused {
+  border-color: rgba(124, 108, 240, 0.45);
+  box-shadow: var(--window-shadow), 0 0 0 1px var(--accent-glow);
+}
+
+.menubar-glass {
+  background: var(--menubar-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+}
+
+.dock-glass {
+  background: var(--dock-bg);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dock-icon-active {
+  animation: dock-bounce 0.4s ease;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

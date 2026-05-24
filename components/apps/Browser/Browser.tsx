@@ -1,0 +1,189 @@
+'use client';
+
+import { useState, useRef, useCallback, useEffect } from 'react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  RotateCw,
+  Home,
+  Search,
+  ExternalLink,
+  Shield,
+} from 'lucide-react';
+import {
+  normalizeBrowserInput,
+  toBrowseFrameUrl,
+  isAllowedUrl,
+} from '@/lib/browserUrl';
+
+const HOME = 'https://www.wikipedia.org';
+
+export function Browser() {
+  const [input, setInput] = useState(HOME);
+  const [frameUrl, setFrameUrl] = useState(HOME);
+  const [displayUrl, setDisplayUrl] = useState(HOME);
+  const [useProxy, setUseProxy] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<string[]>([HOME]);
+  const [idx, setIdx] = useState(0);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const navigate = useCallback(
+    (raw: string, forceProxy?: boolean) => {
+      const { url, display } = normalizeBrowserInput(raw);
+      if (!isAllowedUrl(url)) return;
+
+      setLoading(true);
+      setDisplayUrl(display);
+      setInput(url);
+      const proxy = forceProxy ?? useProxy;
+      setFrameUrl(toBrowseFrameUrl(url, proxy));
+
+      const nextHist = [...history.slice(0, idx + 1), url];
+      setHistory(nextHist);
+      setIdx(nextHist.length - 1);
+    },
+    [history, idx, useProxy]
+  );
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const url = (e as CustomEvent<{ url: string }>).detail?.url;
+      if (url) navigate(url);
+    };
+    window.addEventListener('webos-browser-navigate', handler);
+    return () => window.removeEventListener('webos-browser-navigate', handler);
+  }, [navigate]);
+
+  const onLoad = () => setLoading(false);
+
+  const onIframeError = () => {
+    if (!useProxy) {
+      setUseProxy(true);
+      navigate(input, true);
+    } else {
+      setLoading(false);
+    }
+  };
+
+  const back = () => {
+    if (idx > 0) {
+      const i = idx - 1;
+      setIdx(i);
+      navigate(history[i]);
+    }
+  };
+
+  const forward = () => {
+    if (idx < history.length - 1) {
+      const i = idx + 1;
+      setIdx(i);
+      navigate(history[i]);
+    }
+  };
+
+  const openExternal = () => {
+    const { url } = normalizeBrowserInput(input);
+    if (isAllowedUrl(url)) window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <div className="flex h-full flex-col bg-[#0c0e14]">
+      <div className="flex items-center gap-1 border-b border-white/10 bg-black/30 px-2 py-2">
+        <ToolbarBtn onClick={back} title="Back" disabled={idx === 0}>
+          <ArrowLeft size={16} />
+        </ToolbarBtn>
+        <ToolbarBtn onClick={forward} title="Forward" disabled={idx >= history.length - 1}>
+          <ArrowRight size={16} />
+        </ToolbarBtn>
+        <ToolbarBtn onClick={() => iframeRef.current?.contentWindow?.location.reload()} title="Reload">
+          <RotateCw size={16} className={loading ? 'animate-spin' : ''} />
+        </ToolbarBtn>
+        <ToolbarBtn onClick={() => navigate(HOME)} title="Home">
+          <Home size={16} />
+        </ToolbarBtn>
+
+        <div className="relative flex flex-1 items-center">
+          <Search size={14} className="absolute left-2.5 text-slate-500" />
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && navigate(input)}
+            placeholder="Search the web or enter URL…"
+            className="w-full rounded-lg border border-white/10 bg-black/40 py-2 pl-8 pr-3 text-xs text-slate-200 outline-none focus:border-indigo-500/50"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate(input)}
+          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-medium text-white hover:opacity-90"
+        >
+          Go
+        </button>
+        <ToolbarBtn onClick={openExternal} title="Open in new tab">
+          <ExternalLink size={16} />
+        </ToolbarBtn>
+      </div>
+
+      <div className="flex items-center gap-2 border-b border-white/5 px-3 py-1 text-[10px] text-slate-500">
+        <span className="truncate flex-1">{displayUrl}</span>
+        <button
+          type="button"
+          onClick={() => {
+            const next = !useProxy;
+            setUseProxy(next);
+            navigate(input, next);
+          }}
+          className={`flex items-center gap-1 rounded px-2 py-0.5 ${
+            useProxy ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5'
+          }`}
+        >
+          <Shield size={10} />
+          {useProxy ? 'Proxy on' : 'Proxy off'}
+        </button>
+      </div>
+
+      <div className="relative min-h-0 flex-1 bg-white">
+        {loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+          </div>
+        )}
+        <iframe
+          ref={iframeRef}
+          title="Web Browser"
+          src={frameUrl}
+          className="h-full w-full border-0"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+          onLoad={onLoad}
+          onError={onIframeError}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ToolbarBtn({
+  children,
+  onClick,
+  title,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  title: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      className="rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
+    >
+      {children}
+    </button>
+  );
+}
