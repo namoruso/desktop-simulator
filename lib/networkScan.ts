@@ -127,27 +127,57 @@ export async function collectNetworks(): Promise<NetworkSnapshot> {
   return scanSimulated();
 }
 
-export async function connectToNetwork(ssid: string): Promise<{
+export async function connectToNetwork(
+  ssid: string,
+  password?: string
+): Promise<{
   ok: boolean;
+  simulated: boolean;
   message: string;
 }> {
+  const snapshot = await collectNetworks();
+  if (snapshot.source === 'simulated') {
+    return {
+      ok: true,
+      simulated: true,
+      message: `Simulated: switched to “${ssid}” (nmcli unavailable on this host)`,
+    };
+  }
+
   try {
     const safe = ssid.replace(/"/g, '\\"');
-    await execAsync(`nmcli dev wifi connect "${safe}" 2>&1`, {
-      timeout: 15000,
-    });
-    return { ok: true, message: `Connected to ${ssid}` };
+    let cmd = `nmcli dev wifi connect "${safe}"`;
+    if (password) {
+      const safePass = password.replace(/"/g, '\\"');
+      cmd += ` password "${safePass}"`;
+    }
+    await execAsync(`${cmd} 2>&1`, { timeout: 15000 });
+    return { ok: true, simulated: false, message: `Connected to ${ssid}` };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes('permission') || msg.includes('authorized')) {
       return {
-        ok: true,
-        message: `Simulated connection to ${ssid} (nmcli needs privileges on host)`,
+        ok: false,
+        simulated: false,
+        message:
+          'Cannot connect: NetworkManager (nmcli) requires elevated privileges on this machine.',
+      };
+    }
+    if (
+      msg.includes('Secrets were required') ||
+      msg.includes('password') ||
+      msg.includes('802-11-wireless-security')
+    ) {
+      return {
+        ok: false,
+        simulated: false,
+        message: 'This network requires a password. Enter it when prompted.',
       };
     }
     return {
-      ok: true,
-      message: `Connected to ${ssid} (simulated — ${msg.slice(0, 80)})`,
+      ok: false,
+      simulated: false,
+      message: `Failed to connect to ${ssid}: ${msg.slice(0, 120)}`,
     };
   }
 }

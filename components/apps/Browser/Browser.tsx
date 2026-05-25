@@ -9,14 +9,19 @@ import {
   Search,
   ExternalLink,
   Shield,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   normalizeBrowserInput,
   toBrowseFrameUrl,
   isAllowedUrl,
 } from '@/lib/browserUrl';
+import { AppShell, ToolbarButton } from '@/components/ui/AppShell';
 
 const HOME = 'https://www.wikipedia.org';
+const LOAD_TIMEOUT_MS = 12000;
+
+type BlockReason = 'timeout' | 'embed' | 'proxy-failed' | null;
 
 export function Browser() {
   const [input, setInput] = useState(HOME);
@@ -24,16 +29,24 @@ export function Browser() {
   const [displayUrl, setDisplayUrl] = useState(HOME);
   const [useProxy, setUseProxy] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [blockReason, setBlockReason] = useState<BlockReason>(null);
   const [history, setHistory] = useState<string[]>([HOME]);
   const [idx, setIdx] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const loadTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const clearLoadTimer = () => {
+    if (loadTimer.current) clearTimeout(loadTimer.current);
+  };
 
   const navigate = useCallback(
     (raw: string, forceProxy?: boolean) => {
       const { url, display } = normalizeBrowserInput(raw);
       if (!isAllowedUrl(url)) return;
 
+      clearLoadTimer();
       setLoading(true);
+      setBlockReason(null);
       setDisplayUrl(display);
       setInput(url);
       const proxy = forceProxy ?? useProxy;
@@ -42,6 +55,11 @@ export function Browser() {
       const nextHist = [...history.slice(0, idx + 1), url];
       setHistory(nextHist);
       setIdx(nextHist.length - 1);
+
+      loadTimer.current = setTimeout(() => {
+        setLoading(false);
+        setBlockReason((prev) => prev ?? 'timeout');
+      }, LOAD_TIMEOUT_MS);
     },
     [history, idx, useProxy]
   );
@@ -52,16 +70,23 @@ export function Browser() {
       if (url) navigate(url);
     };
     window.addEventListener('webos-browser-navigate', handler);
-    return () => window.removeEventListener('webos-browser-navigate', handler);
+    return () => {
+      window.removeEventListener('webos-browser-navigate', handler);
+      clearLoadTimer();
+    };
   }, [navigate]);
 
-  const onLoad = () => setLoading(false);
+  const onLoad = () => {
+    clearLoadTimer();
+    setLoading(false);
+  };
 
-  const onIframeError = () => {
+  const tryProxyFallback = () => {
     if (!useProxy) {
       setUseProxy(true);
       navigate(input, true);
     } else {
+      setBlockReason('proxy-failed');
       setLoading(false);
     }
   };
@@ -88,20 +113,27 @@ export function Browser() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-[#0c0e14]">
+    <AppShell>
       <div className="flex items-center gap-1 border-b border-white/10 bg-black/30 px-2 py-2">
-        <ToolbarBtn onClick={back} title="Back" disabled={idx === 0}>
+        <ToolbarButton onClick={back} title="Back" disabled={idx === 0}>
           <ArrowLeft size={16} />
-        </ToolbarBtn>
-        <ToolbarBtn onClick={forward} title="Forward" disabled={idx >= history.length - 1}>
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={forward}
+          title="Forward"
+          disabled={idx >= history.length - 1}
+        >
           <ArrowRight size={16} />
-        </ToolbarBtn>
-        <ToolbarBtn onClick={() => iframeRef.current?.contentWindow?.location.reload()} title="Reload">
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={() => iframeRef.current?.contentWindow?.location.reload()}
+          title="Reload"
+        >
           <RotateCw size={16} className={loading ? 'animate-spin' : ''} />
-        </ToolbarBtn>
-        <ToolbarBtn onClick={() => navigate(HOME)} title="Home">
+        </ToolbarButton>
+        <ToolbarButton onClick={() => navigate(HOME)} title="Home">
           <Home size={16} />
-        </ToolbarBtn>
+        </ToolbarButton>
 
         <div className="relative flex flex-1 items-center">
           <Search size={14} className="absolute left-2.5 text-slate-500" />
@@ -110,24 +142,24 @@ export function Browser() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && navigate(input)}
             placeholder="Search the web or enter URL…"
-            className="w-full rounded-lg border border-white/10 bg-black/40 py-2 pl-8 pr-3 text-xs text-slate-200 outline-none focus:border-indigo-500/50"
+            className="w-full rounded-lg border border-white/10 bg-black/40 py-2 pl-8 pr-3 text-xs text-slate-200 outline-none focus:border-[var(--accent)]/50"
           />
         </div>
 
         <button
           type="button"
           onClick={() => navigate(input)}
-          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-medium text-white hover:opacity-90"
+          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-medium text-white hover:brightness-110"
         >
           Go
         </button>
-        <ToolbarBtn onClick={openExternal} title="Open in new tab">
+        <ToolbarButton onClick={openExternal} title="Open in system browser">
           <ExternalLink size={16} />
-        </ToolbarBtn>
+        </ToolbarButton>
       </div>
 
       <div className="flex items-center gap-2 border-b border-white/5 px-3 py-1 text-[10px] text-slate-500">
-        <span className="truncate flex-1">{displayUrl}</span>
+        <span className="flex-1 truncate">{displayUrl}</span>
         <button
           type="button"
           onClick={() => {
@@ -136,7 +168,7 @@ export function Browser() {
             navigate(input, next);
           }}
           className={`flex items-center gap-1 rounded px-2 py-0.5 ${
-            useProxy ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5'
+            useProxy ? 'bg-[var(--accent)]/20 text-indigo-300' : 'hover:bg-white/5'
           }`}
         >
           <Shield size={10} />
@@ -145,11 +177,58 @@ export function Browser() {
       </div>
 
       <div className="relative min-h-0 flex-1 bg-white">
-        {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+        {loading && !blockReason && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/25 backdrop-blur-sm">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+            <p className="text-xs text-slate-300">Loading page…</p>
           </div>
         )}
+
+        {blockReason && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[var(--app-bg)] p-6 text-center">
+            <AlertTriangle size={32} className="text-amber-400" />
+            <div>
+              <p className="text-sm font-medium text-slate-200">
+                {blockReason === 'timeout' && 'This page is taking too long to load'}
+                {blockReason === 'proxy-failed' && 'Could not load via proxy either'}
+                {blockReason === 'embed' && 'This site blocks embedded browsing'}
+              </p>
+              <p className="mt-2 max-w-md text-xs text-slate-500">
+                Many websites block iframes (X-Frame-Options). Try enabling the
+                proxy, or open the page in your system browser.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {!useProxy && (
+                <button
+                  type="button"
+                  onClick={tryProxyFallback}
+                  className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs text-white"
+                >
+                  Try proxy mode
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={openExternal}
+                className="rounded-lg border border-white/10 px-4 py-2 text-xs text-slate-300 hover:bg-white/5"
+              >
+                Open externally
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setBlockReason(null);
+                  navigate(input);
+                }}
+                className="rounded-lg border border-white/10 px-4 py-2 text-xs text-slate-300 hover:bg-white/5"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
         <iframe
           ref={iframeRef}
           title="Web Browser"
@@ -157,33 +236,9 @@ export function Browser() {
           className="h-full w-full border-0"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
           onLoad={onLoad}
-          onError={onIframeError}
         />
       </div>
-    </div>
+    </AppShell>
   );
 }
 
-function ToolbarBtn({
-  children,
-  onClick,
-  title,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  title: string;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      title={title}
-      disabled={disabled}
-      onClick={onClick}
-      className="rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
-    >
-      {children}
-    </button>
-  );
-}

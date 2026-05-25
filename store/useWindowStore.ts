@@ -10,6 +10,8 @@ const APP_TITLES: Record<AppType, string> = {
   calculator: 'Calculator',
   browser: 'Browser',
   'file-manager': 'File Manager',
+  'image-viewer': 'Image Viewer',
+  'pdf-viewer': 'PDF Viewer',
   settings: 'Settings',
 };
 
@@ -20,6 +22,8 @@ const DEFAULT_SIZES: Record<AppType, { width: number; height: number }> = {
   calculator: { width: 340, height: 500 },
   browser: { width: 920, height: 640 },
   'file-manager': { width: 820, height: 560 },
+  'image-viewer': { width: 760, height: 580 },
+  'pdf-viewer': { width: 900, height: 640 },
   settings: { width: 560, height: 480 },
 };
 
@@ -44,6 +48,7 @@ interface WindowStore {
   focusWindow: (id: string) => void;
   updatePosition: (id: string, pos: { x: number; y: number }) => void;
   updateSize: (id: string, size: { width: number; height: number }) => void;
+  setWindowTitle: (id: string, title: string) => void;
 }
 
 export const useWindowStore = create<WindowStore>()(
@@ -135,6 +140,13 @@ export const useWindowStore = create<WindowStore>()(
         set((s) => ({
           windows: s.windows.map((w) =>
             w.id === id ? { ...w, size } : w
+          ),
+        })),
+
+      setWindowTitle: (id, title) =>
+        set((s) => ({
+          windows: s.windows.map((w) =>
+            w.id === id ? { ...w, title } : w
           ),
         })),
     }),

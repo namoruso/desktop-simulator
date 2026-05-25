@@ -3,6 +3,7 @@ export type ProcessState =
   | 'ready'
   | 'running'
   | 'blocked'
+  | 'suspended'
   | 'terminated';
 
 export type SchedulerAlgorithm = 'RR' | 'FIFO' | 'PRIORITY';

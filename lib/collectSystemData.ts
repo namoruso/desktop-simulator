@@ -30,7 +30,7 @@ export async function collectSystemData(): Promise<SystemSnapshot> {
     cpu: p.cpu,
     memMB: Math.round((p.memRss || 0) / 1024 / 1024),
     priority: p.priority ?? 0,
-    threads: 1,
+    threads: Math.max(1, Number((p as { threads?: number }).threads) || 1),
     startTime: new Date(p.started || Date.now()).toISOString(),
   }));
 

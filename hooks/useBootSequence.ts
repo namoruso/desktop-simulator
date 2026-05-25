@@ -12,7 +12,7 @@ export function useBootSequence() {
       const timer = setTimeout(() => {
         useOSStore.getState().wake();
         useProcessStore.setState((s) => ({
-          scheduler: { ...s.scheduler, isRunning: true },
+          scheduler: { ...s.scheduler, isRunning: true, isPaused: false },
         }));
       }, 4000);
       return () => clearTimeout(timer);
@@ -29,6 +29,9 @@ export function useBootSequence() {
     }
 
     if (osState === 'restarting') {
+      useProcessStore.setState((s) => ({
+        scheduler: { ...s.scheduler, isRunning: false, isPaused: false },
+      }));
       const timer = setTimeout(() => {
         useOSStore.getState().boot();
       }, 3000);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AppShell } from '@/components/ui/AppShell';
 
 export function Calculator() {
   const [display, setDisplay] = useState('0');
@@ -80,9 +81,16 @@ export function Calculator() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-slate-900 p-3">
-      <div className="mb-3 rounded-lg bg-black/40 px-4 py-6 text-right text-3xl font-light tabular-nums text-white">
-        {display}
+    <AppShell className="p-3">
+      <div className="mb-3 rounded-xl border border-white/10 bg-black/40 px-4 py-6 text-right">
+        <div className="truncate text-3xl font-light tabular-nums text-white">
+          {display}
+        </div>
+        {op && (
+          <div className="mt-1 text-[10px] text-slate-500">
+            {prev} {op}
+          </div>
+        )}
       </div>
       <div className="grid flex-1 grid-cols-4 gap-2">
         {buttons.flat().map((label, i) => (
@@ -90,18 +98,20 @@ export function Calculator() {
             key={`${label}-${i}`}
             type="button"
             onClick={() => handleBtn(label)}
-            className={`rounded-xl text-lg font-medium transition hover:bg-white/20 ${
+            className={`rounded-xl py-4 text-lg font-medium transition active:scale-95 hover:brightness-110 ${
               label === '0' ? 'col-span-2' : ''
             } ${
               ['+', '-', '×', '÷', '='].includes(label)
-                ? 'bg-[var(--accent)] text-white'
-                : 'bg-white/10 text-slate-200'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                : label === 'C'
+                  ? 'bg-red-500/20 text-red-300'
+                  : 'bg-white/10 text-slate-200'
             }`}
           >
             {label}
           </button>
         ))}
       </div>
-    </div>
+    </AppShell>
   );
 }

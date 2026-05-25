@@ -51,6 +51,7 @@ function logSnapshotIO(bytes: number) {
 export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
+  const pollFallbackTimer = useRef<ReturnType<typeof setTimeout>>();
   const pollTimer = useRef<ReturnType<typeof setInterval>>();
   const useWs = useRef(true);
 
@@ -83,6 +84,15 @@ export function useWebSocket() {
     }
   }, []);
 
+  const schedulePollFallback = useCallback(() => {
+    clearTimeout(pollFallbackTimer.current);
+    pollFallbackTimer.current = setTimeout(() => {
+      if (wsRef.current?.readyState !== WebSocket.OPEN) {
+        startPolling();
+      }
+    }, 2500);
+  }, [startPolling]);
+
   const connect = useCallback(() => {
     if (typeof window === 'undefined') return;
 
@@ -101,6 +111,7 @@ export function useWebSocket() {
 
     wsRef.current.onopen = () => {
       clearTimeout(reconnectTimer.current);
+      clearTimeout(pollFallbackTimer.current);
       stopPolling();
       setStatus('connected');
       useWs.current = true;
@@ -120,24 +131,26 @@ export function useWebSocket() {
     };
 
     wsRef.current.onclose = () => {
-      setStatus('disconnected');
       if (useWs.current) {
-        reconnectTimer.current = setTimeout(connect, 2000);
+        setStatus('connecting');
+        reconnectTimer.current = setTimeout(connect, 1500);
+        schedulePollFallback();
+      } else {
+        setStatus('disconnected');
+        startPolling();
       }
-      startPolling();
     };
 
     wsRef.current.onerror = () => {
       wsRef.current?.close();
-      useWs.current = false;
-      startPolling();
     };
-  }, [setStatus, startPolling, stopPolling]);
+  }, [setStatus, startPolling, stopPolling, schedulePollFallback]);
 
   useEffect(() => {
     connect();
     return () => {
       clearTimeout(reconnectTimer.current);
+      clearTimeout(pollFallbackTimer.current);
       stopPolling();
       wsRef.current?.close();
     };

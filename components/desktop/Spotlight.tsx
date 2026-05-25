@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Search, Globe, FolderOpen, Terminal, Settings, Activity } from 'lucide-react';
+import { Search, Globe, FolderOpen, Terminal, Settings, Activity, FileText, Calculator, Image, FileType } from 'lucide-react';
 import { launchApp } from '@/lib/launchApp';
-import { APP_LABELS, DOCK_APPS } from '@/lib/appIcons';
+import { APP_LABELS, SPOTLIGHT_APPS } from '@/lib/appIcons';
 import type { AppType } from '@/types/window.types';
 import { normalizeBrowserInput } from '@/lib/browserUrl';
 
@@ -11,9 +11,11 @@ const APP_ICONS_MAP: Record<AppType, React.ReactNode> = {
   'file-manager': <FolderOpen size={18} />,
   'task-manager': <Activity size={18} />,
   terminal: <Terminal size={18} />,
-  'text-editor': <Search size={18} />,
-  calculator: <Search size={18} />,
+  'text-editor': <FileText size={18} />,
+  calculator: <Calculator size={18} />,
   browser: <Globe size={18} />,
+  'image-viewer': <Image size={18} />,
+  'pdf-viewer': <FileType size={18} />,
   settings: <Settings size={18} />,
 };
 
@@ -51,7 +53,7 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
   if (!open) return null;
 
   const q = query.toLowerCase().trim();
-  const apps = DOCK_APPS.filter((a) =>
+  const apps = SPOTLIGHT_APPS.filter((a) =>
     APP_LABELS[a].toLowerCase().includes(q)
   );
 

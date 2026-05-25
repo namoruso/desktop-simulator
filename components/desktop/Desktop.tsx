@@ -4,8 +4,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { Terminal, FolderOpen, Settings } from 'lucide-react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useScheduler } from '@/hooks/useScheduler';
+import { useOSLifecycle } from '@/hooks/useOSLifecycle';
+import { useThemeSettings } from '@/hooks/useThemeSettings';
+import { useHostAudio } from '@/hooks/useHostAudio';
 import { useOSStore } from '@/store/useOSStore';
-import { useFileStore } from '@/store/useFileStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useNetworkStore } from '@/store/useNetworkStore';
 import { useStorageStore } from '@/store/useStorageStore';
@@ -14,20 +16,20 @@ import { Dock } from '@/components/desktop/Dock';
 import { DesktopIcons } from '@/components/desktop/DesktopIcons';
 import { WindowManager } from '@/components/window-manager/WindowManager';
 import { Spotlight } from '@/components/desktop/Spotlight';
+import { ToastHost } from '@/components/system/ToastHost';
+import { ConnectionBanner } from '@/components/system/ConnectionBanner';
 import { launchApp } from '@/lib/launchApp';
 
 export function Desktop() {
   useWebSocket();
   useScheduler();
+  useOSLifecycle();
+  useThemeSettings();
+  useHostAudio();
   const tickUptime = useOSStore((s) => s.tickUptime);
-  const initFs = useFileStore((s) => s.init);
   const scanNet = useNetworkStore((s) => s.scan);
   const scanStorage = useStorageStore((s) => s.scan);
   const wallpaper = useSettingsStore((s) => s.wallpaper);
-  const accent = useSettingsStore((s) => s.accentColor);
-  const nightMode = useSettingsStore((s) => s.nightMode);
-  const uiScale = useSettingsStore((s) => s.uiScale);
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(
     null
   );
@@ -38,23 +40,11 @@ export function Desktop() {
   }, []);
 
   useEffect(() => {
-    initFs();
     scanNet();
     scanStorage();
     const id = setInterval(tickUptime, 1000);
     return () => clearInterval(id);
-  }, [initFs, tickUptime, scanNet, scanStorage]);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty('--accent', accent);
-    document.documentElement.classList.toggle('night-mode', nightMode);
-    document.documentElement.dataset.uiScale = uiScale;
-    if (reduceMotion) {
-      document.documentElement.style.setProperty('--motion', '0');
-    } else {
-      document.documentElement.style.removeProperty('--motion');
-    }
-  }, [accent, nightMode, uiScale, reduceMotion]);
+  }, [tickUptime, scanNet, scanStorage]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -89,11 +79,14 @@ export function Desktop() {
       <div className="desktop-vignette pointer-events-none absolute inset-0" aria-hidden />
 
       <MenuBar onSpotlight={toggleSpotlight} />
+      <ConnectionBanner />
       <div className="relative min-h-0 flex-1">
         <DesktopIcons />
         <WindowManager />
       </div>
       <Dock />
+
+      <ToastHost />
 
       <Spotlight open={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
 

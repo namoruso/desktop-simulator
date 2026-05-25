@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useProcessStore } from '@/store/useProcessStore';
-import { persistence } from '@/hooks/usePersistence';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { SCHEDULER_PROCESS_LIMIT } from '@/lib/scheduler';
 import type { SchedulerAlgorithm } from '@/types/process.types';
 
@@ -14,22 +13,8 @@ export function SchedulerControls() {
   const setSpeed = useProcessStore((s) => s.setSpeedMultiplier);
   const pause = useProcessStore((s) => s.pauseScheduler);
   const resume = useProcessStore((s) => s.resumeScheduler);
-
-  useEffect(() => {
-    persistence.loadSchedulerConfig().then((cfg) => {
-      if (cfg) {
-        setAlgorithm(cfg.algorithm);
-        setQuantum(cfg.quantumMs);
-      }
-    });
-  }, [setAlgorithm, setQuantum]);
-
-  const saveConfig = () => {
-    persistence.saveSchedulerConfig({
-      algorithm: scheduler.algorithm,
-      quantumMs: scheduler.quantumMs,
-    });
-  };
+  const setSettingsAlgorithm = useSettingsStore((s) => s.setSchedulerAlgorithm);
+  const setSettingsQuantum = useSettingsStore((s) => s.setQuantumMs);
 
   const current = scheduler.currentPid
     ? processes.get(scheduler.currentPid)
@@ -45,6 +30,11 @@ export function SchedulerControls() {
     PRIORITY: 'Lowest priority number runs first (Unix nice). High priority can starve others.',
   };
 
+  const persistSettings = (algorithm: SchedulerAlgorithm, quantumMs: number) => {
+    setSettingsAlgorithm(algorithm);
+    setSettingsQuantum(quantumMs);
+  };
+
   return (
     <div className="space-y-4 text-xs">
       <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 p-3 leading-relaxed text-slate-300">
@@ -54,8 +44,15 @@ export function SchedulerControls() {
           {SCHEDULER_PROCESS_LIMIT} processes by load. States:{' '}
           <span className="text-emerald-400">running</span>,{' '}
           <span className="text-amber-400">ready</span> (waiting for CPU),{' '}
-          <span className="text-slate-500">blocked</span> (idle / not in simulation).
+          <span className="text-red-400">blocked</span> (I/O wait or not in top{' '}
+          {SCHEDULER_PROCESS_LIMIT}), <span className="text-sky-400">suspended</span>{' '}
+          (user paused).
         </p>
+        {!scheduler.isRunning && (
+          <p className="mt-2 text-amber-300">
+            Scheduler is stopped. Reload the page or restart WebOS if controls appear inactive.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -64,8 +61,9 @@ export function SchedulerControls() {
           <select
             value={scheduler.algorithm}
             onChange={(e) => {
-              setAlgorithm(e.target.value as SchedulerAlgorithm);
-              saveConfig();
+              const v = e.target.value as SchedulerAlgorithm;
+              setAlgorithm(v);
+              persistSettings(v, scheduler.quantumMs);
             }}
             className="rounded border border-white/10 bg-black/30 px-2 py-1.5"
           >
@@ -84,8 +82,9 @@ export function SchedulerControls() {
             step={50}
             value={scheduler.quantumMs}
             onChange={(e) => {
-              setQuantum(Number(e.target.value));
-              saveConfig();
+              const v = Number(e.target.value);
+              setQuantum(v);
+              persistSettings(scheduler.algorithm, v);
             }}
             className="w-full"
           />
@@ -172,15 +171,19 @@ export function SchedulerControls() {
       </div>
 
       <div>
-        <h4 className="mb-1 font-medium text-slate-300">Blocked / idle</h4>
+        <h4 className="mb-1 font-medium text-slate-300">
+          Blocked queue ({scheduler.blockedQueue.length})
+        </h4>
         <p className="text-[10px] text-slate-500">
-          Other host processes not in the {SCHEDULER_PROCESS_LIMIT}-process simulation
+          Waiting on simulated disk I/O or outside the top-{SCHEDULER_PROCESS_LIMIT}{' '}
+          CPU simulation
         </p>
-        <p className="mt-1 text-slate-500">
-          {scheduler.blockedQueue.length === 0
-            ? '—'
-            : `${scheduler.blockedQueue.length} processes (see Processes tab, gray state)`}
-        </p>
+        {scheduler.blockedQueue.length > 0 && (
+          <p className="mt-1 font-mono text-[10px] text-slate-500">
+            PIDs: {scheduler.blockedQueue.slice(0, 12).join(', ')}
+            {scheduler.blockedQueue.length > 12 ? '…' : ''}
+          </p>
+        )}
       </div>
     </div>
   );

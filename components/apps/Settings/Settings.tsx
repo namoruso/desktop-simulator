@@ -15,18 +15,23 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import clsx from 'clsx';
+import { AppShell } from '@/components/ui/AppShell';
 import {
   useSettingsStore,
   type WallpaperStyle,
   type UiScale,
 } from '@/store/useSettingsStore';
 import { useProcessStore } from '@/store/useProcessStore';
-import { useFileStore } from '@/store/useFileStore';
 import { useNetworkStore } from '@/store/useNetworkStore';
 import { useStorageStore } from '@/store/useStorageStore';
 import { useOSStore } from '@/store/useOSStore';
 import type { SchedulerAlgorithm } from '@/types/process.types';
+import { APP_VERSION } from '@/lib/constants';
 import { SettingRow, Toggle, SectionTitle, ProgressBar } from '@/components/ui/os-ui';
+import { useHostAudio } from '@/hooks/useHostAudio';
+import { ConfirmDialog } from '@/components/ui/OSDialog';
+
+type SettingsConfirm = 'clearStorage' | null;
 
 type Category =
   | 'appearance'
@@ -53,10 +58,11 @@ const NAV: { id: Category; label: string; icon: React.ReactNode }[] = [
 
 export function Settings() {
   const [cat, setCat] = useState<Category>('appearance');
+  const [confirm, setConfirm] = useState<SettingsConfirm>(null);
   const settings = useSettingsStore();
+  const { volume, applyVolume } = useHostAudio();
   const setAlgorithm = useProcessStore((s) => s.setSchedulerAlgorithm);
   const setQuantum = useProcessStore((s) => s.setQuantum);
-  const resetFs = useFileStore((s) => s.reset);
   const netSnapshot = useNetworkStore((s) => s.snapshot);
   const scanNet = useNetworkStore((s) => s.scan);
   const storageSnapshot = useStorageStore((s) => s.snapshot);
@@ -73,30 +79,19 @@ export function Settings() {
     scanStorage();
   }, [scanStorage]);
 
-  useEffect(() => {
-    document.documentElement.style.setProperty('--accent', settings.accentColor);
-    document.documentElement.classList.toggle('night-mode', settings.nightMode);
-    document.documentElement.dataset.uiScale = settings.uiScale;
-  }, [settings.accentColor, settings.nightMode, settings.uiScale]);
+  const handleClearStorage = () => setConfirm('clearStorage');
 
-  const handleResetFs = async () => {
-    if (confirm('Reset virtual filesystem and I/O logs?')) await resetFs();
-  };
-
-  const handleClearStorage = () => {
-    if (
-      confirm(
-        'Clear all WebOS local data (windows, settings)? The page will reload.'
-      )
-    ) {
+  const runConfirmedAction = () => {
+    if (confirm === 'clearStorage') {
       localStorage.clear();
       indexedDB.deleteDatabase('keyval-store');
       window.location.reload();
     }
+    setConfirm(null);
   };
 
   return (
-    <div className="flex h-full bg-[var(--app-bg)] text-sm">
+    <AppShell className="!flex-row">
       <nav className="flex w-44 shrink-0 flex-col border-r border-white/10 bg-black/25 py-2">
         <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
           Settings
@@ -306,20 +301,13 @@ export function Settings() {
             ) : (
               <p className="text-slate-500">Scanning storage…</p>
             )}
-            <div className="mt-6 space-y-2">
-              <button
-                type="button"
-                onClick={handleResetFs}
-                className="block w-full rounded-lg border border-white/10 px-3 py-2 text-left text-xs text-slate-300 hover:bg-white/5"
-              >
-                Reset virtual filesystem (IndexedDB)
-              </button>
+            <div className="mt-6">
               <button
                 type="button"
                 onClick={handleClearStorage}
                 className="block w-full rounded-lg border border-red-500/30 px-3 py-2 text-left text-xs text-red-400 hover:bg-red-500/10"
               >
-                Clear all local data and reload
+                Clear all WebOS local data and reload
               </button>
             </div>
           </PanelContent>
@@ -351,19 +339,25 @@ export function Settings() {
 
         {cat === 'notifications' && (
           <PanelContent title="Notifications">
-            <SettingRow label="Enable notifications">
+            <p className="text-xs text-slate-500">
+              View history in the menu bar bell icon. Toasts appear bottom-right when enabled.
+            </p>
+            <SettingRow label="Enable toast notifications">
               <Toggle
                 checked={settings.notificationsEnabled}
                 onChange={settings.setNotificationsEnabled}
               />
             </SettingRow>
-            <SettingRow label={`System volume: ${settings.volume}%`}>
+            <SettingRow
+              label={`System volume: ${volume}%`}
+              hint="Controls host audio via wpctl/pactl/amixer when available"
+            >
               <input
                 type="range"
                 min={0}
                 max={100}
-                value={settings.volume}
-                onChange={(e) => settings.setVolume(Number(e.target.value))}
+                value={volume}
+                onChange={(e) => void applyVolume(Number(e.target.value))}
                 className="w-40"
               />
             </SettingRow>
@@ -418,7 +412,7 @@ export function Settings() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-white">WebOS Simulator</h2>
-                <p className="text-xs text-slate-500">Version 2.0 · Next.js 14</p>
+                <p className="text-xs text-slate-500">Version {APP_VERSION} · Next.js 14</p>
               </div>
             </div>
             <ul className="mt-6 space-y-2 text-xs text-slate-400">
@@ -435,7 +429,17 @@ export function Settings() {
           </PanelContent>
         )}
       </div>
-    </div>
+
+      <ConfirmDialog
+        open={confirm === 'clearStorage'}
+        title="Clear WebOS Data"
+        message="Clear all WebOS local data (windows, settings)? The page will reload."
+        confirmLabel="Clear & Reload"
+        variant="danger"
+        onCancel={() => setConfirm(null)}
+        onConfirm={() => void runConfirmedAction()}
+      />
+    </AppShell>
   );
 }
 

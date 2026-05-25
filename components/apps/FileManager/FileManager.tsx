@@ -13,12 +13,33 @@ import {
   Send,
   Usb,
   File,
+  Pencil,
+  Trash2,
   ChevronUp,
+  FileText,
+  Image as ImageIcon,
+  FileType,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useStorageStore } from '@/store/useStorageStore';
 import type { StorageDrive, FileEntry } from '@/types/storage.types';
 import { Btn, ProgressBar } from '@/components/ui/os-ui';
+import { AppShell } from '@/components/ui/AppShell';
+import { ConfirmDialog, PromptDialog } from '@/components/ui/OSDialog';
+import { openFileInEditor, isEditableTextFile } from '@/lib/editorBridge';
+import { openFileInImageViewer, openFileInPdfViewer } from '@/lib/mediaBridge';
+import { getRawFileUrl, isImageFile, isPdfFile } from '@/lib/fileTypes';
+
+type FileDialog =
+  | { kind: 'mkdir' }
+  | { kind: 'rename' }
+  | { kind: 'delete'; name: string };
+
+function validateFileName(name: string): string | null {
+  if (/[/\\]/.test(name)) return 'Name cannot contain / or \\';
+  if (name === '.' || name === '..') return 'Invalid name';
+  return null;
+}
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -42,7 +63,6 @@ export function FileManager() {
   const loading = useStorageStore((s) => s.loading);
   const error = useStorageStore((s) => s.error);
   const preview = useStorageStore((s) => s.preview);
-  const toast = useStorageStore((s) => s.toast);
   const scan = useStorageStore((s) => s.scan);
   const openPath = useStorageStore((s) => s.openPath);
   const selectEntry = useStorageStore((s) => s.selectEntry);
@@ -50,29 +70,30 @@ export function FileManager() {
   const paste = useStorageStore((s) => s.paste);
   const transferTo = useStorageStore((s) => s.transferTo);
   const mkdir = useStorageStore((s) => s.mkdir);
+  const removeSelected = useStorageStore((s) => s.removeSelected);
+  const renameSelected = useStorageStore((s) => s.renameSelected);
+  const moveEntry = useStorageStore((s) => s.moveEntry);
+  const uploadFiles = useStorageStore((s) => s.uploadFiles);
   const loadPreview = useStorageStore((s) => s.loadPreview);
-  const clearToast = useStorageStore((s) => s.clearToast);
 
   const [transferOpen, setTransferOpen] = useState(false);
+  const [initDone, setInitDone] = useState(false);
+  const [dialog, setDialog] = useState<FileDialog | null>(null);
+  const [dragPath, setDragPath] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [hostDragOver, setHostDragOver] = useState(false);
 
   useEffect(() => {
-    void scan();
-    // mount-only storage scan
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!currentPath && snapshot?.drives.length) {
-      const home = snapshot.drives.find((d) => d.type === 'home');
-      openPath(home?.mount ?? snapshot.drives[0].mount!);
-    }
-  }, [snapshot, currentPath, openPath]);
-
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(clearToast, 4000);
-    return () => clearTimeout(t);
-  }, [toast, clearToast]);
+    if (initDone || currentPath || !snapshot?.drives.length) return;
+    const target =
+      snapshot.userHome ??
+      snapshot.drives.find((d) => d.type === 'home')?.mount ??
+      snapshot.drives.find((d) => d.label === 'Home')?.mount ??
+      snapshot.drives[0]?.mount;
+    if (!target) return;
+    setInitDone(true);
+    void openPath(target);
+  }, [snapshot, currentPath, openPath, initDone]);
 
   const drives = snapshot?.drives ?? [];
   const usbDrives = drives.filter((d) => d.isUSB);
@@ -80,24 +101,81 @@ export function FileManager() {
   const handleOpen = (entry: FileEntry) => {
     if (entry.isDirectory) {
       openPath(entry.path);
+    } else if (isEditableTextFile(entry.name, entry.size)) {
+      openFileInEditor(entry.path);
+    } else if (isImageFile(entry.name, entry.size)) {
+      openFileInImageViewer(entry.path);
+    } else if (isPdfFile(entry.name, entry.size)) {
+      openFileInPdfViewer(entry.path);
     } else {
       selectEntry(entry);
       loadPreview(entry);
     }
   };
 
-  const handleMkdir = async () => {
-    const name = prompt('New folder name:', 'New Folder');
-    if (name) await mkdir(name);
+  const handleOpenInEditor = () => {
+    if (selected && !selected.isDirectory && isEditableTextFile(selected.name, selected.size)) {
+      openFileInEditor(selected.path);
+    }
+  };
+
+  const handleOpenInImageViewer = () => {
+    if (selected && !selected.isDirectory && isImageFile(selected.name, selected.size)) {
+      openFileInImageViewer(selected.path);
+    }
+  };
+
+  const handleOpenInPdfViewer = () => {
+    if (selected && !selected.isDirectory && isPdfFile(selected.name, selected.size)) {
+      openFileInPdfViewer(selected.path);
+    }
+  };
+
+  const closeDialog = () => setDialog(null);
+
+  const handleDropOnFolder = (targetDir: string) => {
+    if (!dragPath || dragPath === targetDir) return;
+    if (targetDir.startsWith(`${dragPath}/`) || targetDir === dragPath) return;
+    void moveEntry(dragPath, targetDir);
+    setDragPath(null);
+    setDropTarget(null);
+  };
+
+  const handleMkdir = () => setDialog({ kind: 'mkdir' });
+
+  const handleRename = () => {
+    if (selected) setDialog({ kind: 'rename' });
+  };
+
+  const handleDelete = () => {
+    if (selected) setDialog({ kind: 'delete', name: selected.name });
+  };
+
+  const isHostFileDrag = (e: React.DragEvent) =>
+    Array.from(e.dataTransfer.types).includes('Files');
+
+  const handleHostDragOver = (e: React.DragEvent) => {
+    if (!isHostFileDrag(e) || !currentPath) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setHostDragOver(true);
+  };
+
+  const handleHostDragLeave = (e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setHostDragOver(false);
+  };
+
+  const handleHostDrop = (e: React.DragEvent) => {
+    if (!isHostFileDrag(e) || !currentPath) return;
+    e.preventDefault();
+    setHostDragOver(false);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length) void uploadFiles(files, currentPath);
   };
 
   return (
-    <div className="flex h-full flex-col bg-[var(--app-bg)] text-sm">
-      {toast && (
-        <div className="shrink-0 border-b border-emerald-500/30 bg-emerald-500/15 px-4 py-2 text-xs text-emerald-200">
-          {toast}
-        </div>
-      )}
+    <AppShell>
       {error && (
         <div className="shrink-0 border-b border-red-500/30 bg-red-500/15 px-4 py-2 text-xs text-red-300">
           {error}
@@ -139,13 +217,33 @@ export function FileManager() {
             hasClipboard={!!clipboard}
             onUp={() => parentPath && openPath(parentPath)}
             onRefresh={() => {
-              scan();
-              if (currentPath) openPath(currentPath);
+              void scan({ silent: true });
+              if (currentPath) void openPath(currentPath);
             }}
             onMkdir={handleMkdir}
             onCopy={() => selected && copyToClipboard(selected)}
             onPaste={paste}
             onTransfer={() => setTransferOpen((o) => !o)}
+            onRename={handleRename}
+            onDelete={handleDelete}
+            onOpenInEditor={handleOpenInEditor}
+            onOpenInImageViewer={handleOpenInImageViewer}
+            onOpenInPdfViewer={handleOpenInPdfViewer}
+            canOpenInEditor={
+              !!selected &&
+              !selected.isDirectory &&
+              isEditableTextFile(selected.name, selected.size)
+            }
+            canOpenInImageViewer={
+              !!selected &&
+              !selected.isDirectory &&
+              isImageFile(selected.name, selected.size)
+            }
+            canOpenInPdfViewer={
+              !!selected &&
+              !selected.isDirectory &&
+              isPdfFile(selected.name, selected.size)
+            }
             canCopy={!!selected}
           />
 
@@ -179,10 +277,25 @@ export function FileManager() {
           )}
 
           <div className="flex min-h-0 flex-1">
-            <div className="flex min-w-0 flex-[3] flex-col border-r border-white/10">
+            <div
+              className="relative flex min-w-0 flex-[3] flex-col border-r border-white/10"
+              onDragOver={handleHostDragOver}
+              onDragLeave={handleHostDragLeave}
+              onDrop={handleHostDrop}
+            >
               <div className="truncate border-b border-white/10 px-3 py-1.5 font-mono text-[10px] text-slate-400">
                 {currentPath ?? '—'}
+                {hostDragOver && (
+                  <span className="ml-2 text-emerald-400">· Drop to upload</span>
+                )}
               </div>
+              {hostDragOver && (
+                <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-emerald-500/15 ring-2 ring-inset ring-emerald-400/50">
+                  <p className="rounded-lg bg-black/50 px-4 py-2 text-sm font-medium text-emerald-200">
+                    Drop files to upload here
+                  </p>
+                </div>
+              )}
               <ul className="flex-1 overflow-auto p-1">
                 {loading && entries.length === 0 ? (
                   <li className="p-6 text-center text-slate-500">Loading…</li>
@@ -194,10 +307,39 @@ export function FileManager() {
                       key={entry.path}
                       entry={entry}
                       selected={selected?.path === entry.path}
+                      isDragging={dragPath === entry.path}
+                      isDropTarget={dropTarget === entry.path && entry.isDirectory}
                       onClick={() => handleOpen(entry)}
                       onSelect={() => {
                         selectEntry(entry);
-                        if (!entry.isDirectory) loadPreview(entry);
+                        if (
+                          !entry.isDirectory &&
+                          !isImageFile(entry.name, entry.size) &&
+                          !isPdfFile(entry.name, entry.size)
+                        ) {
+                          loadPreview(entry);
+                        }
+                      }}
+                      onDragStart={() => setDragPath(entry.path)}
+                      onDragEnd={() => {
+                        setDragPath(null);
+                        setDropTarget(null);
+                      }}
+                      onDragOver={() => {
+                        if (!entry.isDirectory || !dragPath) return;
+                        if (
+                          dragPath === entry.path ||
+                          entry.path.startsWith(`${dragPath}/`)
+                        ) {
+                          return;
+                        }
+                        setDropTarget(entry.path);
+                      }}
+                      onDragLeave={() => {
+                        if (dropTarget === entry.path) setDropTarget(null);
+                      }}
+                      onDrop={() => {
+                        if (entry.isDirectory) handleDropOnFolder(entry.path);
                       }}
                     />
                   ))
@@ -211,11 +353,55 @@ export function FileManager() {
                   ? `${selected.name} · ${selected.isDirectory ? 'Folder' : formatSize(selected.size)}`
                   : 'Select an item'}
               </div>
-              <pre className="flex-1 overflow-auto p-3 font-mono text-[11px] text-slate-300 whitespace-pre-wrap">
-                {selected?.isDirectory
-                  ? `Folder: ${selected.path}\n\n${entries.length} items`
-                  : preview ?? 'Text preview for files under 2 MB'}
-              </pre>
+              {selected &&
+              !selected.isDirectory &&
+              isImageFile(selected.name, selected.size) ? (
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  <div className="flex flex-1 items-center justify-center overflow-auto bg-black/30 p-2">
+                    <img
+                      src={getRawFileUrl(selected.path)}
+                      alt={selected.name}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                  <div className="border-t border-white/10 p-2">
+                    <Btn variant="primary" onClick={handleOpenInImageViewer}>
+                      <ImageIcon size={12} />
+                      Open in Image Viewer
+                    </Btn>
+                  </div>
+                </div>
+              ) : selected &&
+                !selected.isDirectory &&
+                isPdfFile(selected.name, selected.size) ? (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+                  <FileType size={40} className="text-red-400/80" />
+                  <p className="text-xs text-slate-400">
+                    PDF document · {formatSize(selected.size)}
+                  </p>
+                  <Btn variant="primary" onClick={handleOpenInPdfViewer}>
+                    <FileType size={12} />
+                    Open in PDF Viewer
+                  </Btn>
+                </div>
+              ) : (
+                <pre className="flex-1 overflow-auto p-3 font-mono text-[11px] text-slate-300 whitespace-pre-wrap">
+                  {selected?.isDirectory
+                    ? `Folder: ${selected.path}\n\n${entries.length} items`
+                    : preview ??
+                      'Select a file to preview (text ≤ 2 MB, images/PDF open in viewer)'}
+                </pre>
+              )}
+              {selected &&
+                !selected.isDirectory &&
+                isEditableTextFile(selected.name, selected.size) && (
+                  <div className="border-t border-white/10 p-2">
+                    <Btn variant="primary" onClick={handleOpenInEditor}>
+                      <FileText size={12} />
+                      Open in Text Editor
+                    </Btn>
+                  </div>
+                )}
             </div>
           </div>
         </div>
@@ -227,7 +413,51 @@ export function FileManager() {
           USB detected: {usbDrives.map((d) => d.label).join(', ')} — use Send to copy files
         </footer>
       )}
-    </div>
+
+      <PromptDialog
+        open={dialog?.kind === 'mkdir'}
+        title="New Folder"
+        label="Folder name"
+        defaultValue="New Folder"
+        submitLabel="Create"
+        validate={validateFileName}
+        onCancel={closeDialog}
+        onSubmit={(name) => {
+          closeDialog();
+          void mkdir(name);
+        }}
+      />
+
+      <PromptDialog
+        open={dialog?.kind === 'rename'}
+        title="Rename"
+        label="New name"
+        defaultValue={selected?.name ?? ''}
+        submitLabel="Rename"
+        validate={(name) => {
+          if (selected && name === selected.name) return 'Name is unchanged';
+          return validateFileName(name);
+        }}
+        onCancel={closeDialog}
+        onSubmit={(name) => {
+          closeDialog();
+          void renameSelected(name);
+        }}
+      />
+
+      <ConfirmDialog
+        open={dialog?.kind === 'delete'}
+        title="Delete"
+        message={`Delete “${dialog?.kind === 'delete' ? dialog.name : ''}”? This cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        onCancel={closeDialog}
+        onConfirm={() => {
+          closeDialog();
+          void removeSelected();
+        }}
+      />
+    </AppShell>
   );
 }
 
@@ -288,6 +518,14 @@ function Toolbar({
   onCopy,
   onPaste,
   onTransfer,
+  onRename,
+  onDelete,
+  onOpenInEditor,
+  onOpenInImageViewer,
+  onOpenInPdfViewer,
+  canOpenInEditor,
+  canOpenInImageViewer,
+  canOpenInPdfViewer,
   canCopy,
 }: {
   loading: boolean;
@@ -300,6 +538,14 @@ function Toolbar({
   onCopy: () => void;
   onPaste: () => void;
   onTransfer: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+  onOpenInEditor: () => void;
+  onOpenInImageViewer: () => void;
+  onOpenInPdfViewer: () => void;
+  canOpenInEditor: boolean;
+  canOpenInImageViewer: boolean;
+  canOpenInPdfViewer: boolean;
   canCopy: boolean;
 }) {
   return (
@@ -318,6 +564,26 @@ function Toolbar({
       <ToolIcon icon={<FolderPlus size={16} />} title="New folder" onClick={onMkdir} />
       <div className="mx-1 h-5 w-px bg-white/10" />
       <ToolIcon icon={<Copy size={16} />} title="Copy" disabled={!canCopy} onClick={onCopy} />
+      <ToolIcon icon={<Pencil size={16} />} title="Rename" disabled={!canCopy} onClick={onRename} />
+      <ToolIcon icon={<Trash2 size={16} />} title="Delete" disabled={!canCopy} onClick={onDelete} />
+      <ToolIcon
+        icon={<FileText size={16} />}
+        title="Open in Text Editor"
+        disabled={!canOpenInEditor}
+        onClick={onOpenInEditor}
+      />
+      <ToolIcon
+        icon={<ImageIcon size={16} />}
+        title="Open in Image Viewer"
+        disabled={!canOpenInImageViewer}
+        onClick={onOpenInImageViewer}
+      />
+      <ToolIcon
+        icon={<FileType size={16} />}
+        title="Open in PDF Viewer"
+        disabled={!canOpenInPdfViewer}
+        onClick={onOpenInPdfViewer}
+      />
       <ToolIcon
         icon={<ClipboardPaste size={16} />}
         title="Paste"
@@ -356,26 +622,64 @@ function ToolIcon({
   );
 }
 
+const DRAG_PATH_TYPE = 'application/x-webos-path';
+
 function FileRow({
   entry,
   selected,
+  isDragging,
+  isDropTarget,
   onClick,
   onSelect,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: {
   entry: FileEntry;
   selected: boolean;
+  isDragging?: boolean;
+  isDropTarget?: boolean;
   onClick: () => void;
   onSelect: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onDragOver: () => void;
+  onDragLeave: () => void;
+  onDrop: () => void;
 }) {
   return (
-    <li>
+    <li
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData(DRAG_PATH_TYPE, entry.path);
+        e.dataTransfer.effectAllowed = 'move';
+        onDragStart();
+      }}
+      onDragEnd={onDragEnd}
+      onDragOver={(e) => {
+        if (!entry.isDirectory) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        onDragOver();
+      }}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => {
+        e.preventDefault();
+        onDrop();
+      }}
+    >
       <button
         type="button"
         onClick={onSelect}
         onDoubleClick={onClick}
         className={clsx(
           'flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left transition',
-          selected ? 'bg-[var(--accent)]/20 ring-1 ring-[var(--accent)]/40' : 'hover:bg-white/5'
+          selected && 'bg-[var(--accent)]/20 ring-1 ring-[var(--accent)]/40',
+          isDropTarget && 'bg-emerald-500/20 ring-1 ring-emerald-400/50',
+          isDragging && 'opacity-40',
+          !selected && !isDropTarget && 'hover:bg-white/5'
         )}
       >
         {entry.isDirectory ? (

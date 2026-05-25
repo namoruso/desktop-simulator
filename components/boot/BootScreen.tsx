@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { APP_VERSION } from '@/lib/constants';
 
 const BOOT_LOGS = [
   'Initializing kernel...',
   'Loading memory manager...',
   'Starting process scheduler (Round Robin)...',
-  'Mounting virtual filesystem...',
+  'Mounting host filesystem bridge...',
   'Connecting to hardware bridge (systeminformation)...',
   'Starting WebSocket daemon on :3000...',
   'Loading desktop environment...',
@@ -35,7 +36,7 @@ export function BootScreen() {
       <div className="mb-8 flex items-center gap-3">
         <Loader2 size={20} className="animate-spin text-indigo-400" />
         <h1 className="text-lg font-medium tracking-widest text-indigo-300">
-          WEBOS v1.0.0
+          WEBOS v{APP_VERSION}
         </h1>
       </div>
       <div className="mb-6 h-1.5 w-80 overflow-hidden rounded-full bg-white/5">

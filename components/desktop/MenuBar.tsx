@@ -1,7 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Power,
   RefreshCw,
@@ -9,6 +9,7 @@ import {
   HardDrive,
   Search,
   Usb,
+  Volume2,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useOSStore } from '@/store/useOSStore';
@@ -16,8 +17,11 @@ import { useProcessStore } from '@/store/useProcessStore';
 import { useMemoryStore } from '@/store/useMemoryStore';
 import { useSystemStore } from '@/store/useSystemStore';
 import { useStorageStore } from '@/store/useStorageStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import { useHostAudio } from '@/hooks/useHostAudio';
 import { launchApp } from '@/lib/launchApp';
 import { NetworkMenu } from './NetworkMenu';
+import { NotificationCenter } from './NotificationCenter';
 
 interface MenuBarProps {
   onSpotlight: () => void;
@@ -35,6 +39,10 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
   const usbCount = useStorageStore(
     (s) => s.snapshot?.drives.filter((d) => d.isUSB).length ?? 0
   );
+  const timeFormat = useSettingsStore((s) => s.timeFormat);
+  const { volume, applyVolume } = useHostAudio();
+  const [volumeOpen, setVolumeOpen] = useState(false);
+  const volumeRef = useRef<HTMLDivElement>(null);
 
   const cpu = cpuHistory[cpuHistory.length - 1] ?? 0;
   const freePct =
@@ -49,6 +57,16 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
   useEffect(() => {
     const id = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (volumeRef.current && !volumeRef.current.contains(e.target as Node)) {
+        setVolumeOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const formatUptime = (s: number) => {
@@ -112,7 +130,39 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
           <span className="hidden sm:inline">Search</span>
         </button>
 
+        <NotificationCenter />
+
         <NetworkMenu />
+
+        <div ref={volumeRef} className="relative hidden sm:block">
+          <button
+            type="button"
+            onClick={() => setVolumeOpen((o) => !o)}
+            className={clsx(
+              'flex items-center gap-1 rounded-md px-2 py-1 transition',
+              volumeOpen
+                ? 'bg-white/15 text-white'
+                : 'text-slate-500 hover:bg-white/10 hover:text-white'
+            )}
+            title="System volume"
+          >
+            <Volume2 size={12} />
+            {volume}%
+          </button>
+          {volumeOpen && (
+            <div className="absolute right-0 top-full z-[200] mt-2 w-44 rounded-xl border border-white/10 bg-[rgba(18,22,32,0.98)] p-3 shadow-2xl">
+              <p className="mb-2 text-[10px] text-slate-400">Host volume</p>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={volume}
+                onChange={(e) => void applyVolume(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
 
         <span
           className={clsx(
@@ -141,7 +191,10 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
           <Power size={14} />
         </button>
         <span className="tabular-nums font-medium text-slate-200">
-          {format(time, 'EEE d  HH:mm')}
+          {format(
+            time,
+            timeFormat === '12h' ? 'EEE d  h:mm a' : 'EEE d  HH:mm'
+          )}
         </span>
       </div>
     </header>

@@ -5,16 +5,22 @@ import {
   Wifi,
   WifiOff,
   RefreshCw,
-  Lock,
   Check,
   Loader2,
   Cable,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useNetworkStore } from '@/store/useNetworkStore';
+import { Btn } from '@/components/ui/os-ui';
+
+function needsPassword(security: string): boolean {
+  return !!security && security !== 'Open' && security !== '—';
+}
 
 export function NetworkMenu() {
   const [open, setOpen] = useState(false);
+  const [passwordFor, setPasswordFor] = useState<string | null>(null);
+  const [password, setPassword] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   const snapshot = useNetworkStore((s) => s.snapshot);
   const isScanning = useNetworkStore((s) => s.isScanning);
@@ -33,6 +39,7 @@ export function NetworkMenu() {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+        setPasswordFor(null);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -41,6 +48,13 @@ export function NetworkMenu() {
 
   const active = snapshot?.activeSsid;
   const signalIcon = snapshot?.wifiEnabled !== false;
+
+  const connectTo = async (ssid: string, pwd?: string) => {
+    await connect(ssid, pwd);
+    await scan();
+    setPasswordFor(null);
+    setPassword('');
+  };
 
   return (
     <div ref={ref} className="relative">
@@ -93,19 +107,25 @@ export function NetworkMenu() {
             ) : (
               snapshot?.networks.map((net) => {
                 const isActive = net.inUse || net.ssid === active;
+                const securing = needsPassword(net.security);
                 return (
                   <li key={net.ssid}>
                     <button
                       type="button"
                       disabled={isConnecting || isActive}
-                      onClick={async () => {
-                        await connect(net.ssid);
-                        await scan();
+                      onClick={() => {
+                        if (securing) {
+                          setPasswordFor(net.ssid);
+                          setPassword('');
+                          return;
+                        }
+                        void connectTo(net.ssid);
                       }}
                       className={clsx(
                         'flex w-full items-center gap-3 px-4 py-2.5 text-left text-xs transition',
                         isActive ? 'bg-indigo-500/15' : 'hover:bg-white/5',
-                        isConnecting && 'opacity-50'
+                        isConnecting && 'opacity-50',
+                        passwordFor === net.ssid && 'bg-indigo-500/10 ring-1 ring-indigo-400/30'
                       )}
                     >
                       <Wifi
@@ -152,7 +172,49 @@ export function NetworkMenu() {
             )}
           </ul>
 
-          {lastError && (
+          {passwordFor && (
+            <div className="border-t border-white/10 bg-indigo-500/10 px-4 py-3">
+              <p className="mb-2 text-xs font-medium text-indigo-200">
+                Password for “{passwordFor}”
+              </p>
+              <input
+                type="password"
+                value={password}
+                placeholder="Network password"
+                autoComplete="off"
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && password) {
+                    void connectTo(passwordFor, password);
+                  }
+                  if (e.key === 'Escape') {
+                    setPasswordFor(null);
+                    setPassword('');
+                  }
+                }}
+                className="mb-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-slate-100 outline-none focus:border-[var(--accent)]"
+              />
+              <div className="flex justify-end gap-2">
+                <Btn
+                  onClick={() => {
+                    setPasswordFor(null);
+                    setPassword('');
+                  }}
+                >
+                  Cancel
+                </Btn>
+                <Btn
+                  variant="primary"
+                  disabled={!password || isConnecting}
+                  onClick={() => void connectTo(passwordFor, password)}
+                >
+                  {isConnecting ? 'Connecting…' : 'Connect'}
+                </Btn>
+              </div>
+            </div>
+          )}
+
+          {lastError && !passwordFor && (
             <p className="border-t border-white/10 px-4 py-2 text-[10px] text-red-400">
               {lastError}
             </p>

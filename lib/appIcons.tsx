@@ -2,8 +2,10 @@ import {
   Activity,
   Calculator,
   FileText,
+  FileType,
   FolderOpen,
   Globe,
+  Image,
   Settings,
   Terminal,
   type LucideIcon,
@@ -17,6 +19,8 @@ export const APP_ICONS: Record<AppType, LucideIcon> = {
   calculator: Calculator,
   browser: Globe,
   'file-manager': FolderOpen,
+  'image-viewer': Image,
+  'pdf-viewer': FileType,
   settings: Settings,
 };
 
@@ -27,6 +31,8 @@ export const APP_LABELS: Record<AppType, string> = {
   calculator: 'Calculator',
   browser: 'Browser',
   'file-manager': 'Files',
+  'image-viewer': 'Image Viewer',
+  'pdf-viewer': 'PDF Viewer',
   settings: 'Settings',
 };
 
@@ -35,16 +41,23 @@ export const DOCK_APPS: AppType[] = [
   'task-manager',
   'terminal',
   'text-editor',
+  'image-viewer',
+  'pdf-viewer',
   'calculator',
   'browser',
   'settings',
 ];
+
+/** All launchable apps (same as dock). */
+export const SPOTLIGHT_APPS: AppType[] = DOCK_APPS;
 
 export const DESKTOP_APPS: AppType[] = [
   'file-manager',
   'task-manager',
   'terminal',
   'text-editor',
+  'image-viewer',
+  'pdf-viewer',
   'calculator',
   'browser',
   'settings',

@@ -34,6 +34,8 @@ export function mapRawToOSProcess(
     state = 'terminated';
   } else if (schedulerPid === raw.pid) {
     state = 'running';
+  } else if (existing?.state === 'suspended') {
+    state = 'suspended';
   } else if (existing?.state === 'blocked') {
     state = 'blocked';
   } else if (existing?.state === 'running' && schedulerPid !== raw.pid) {

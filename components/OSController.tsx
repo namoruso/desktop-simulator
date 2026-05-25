@@ -1,5 +1,6 @@
 'use client';
 
+import { useOSLifecycle } from '@/hooks/useOSLifecycle';
 import { useBootSequence } from '@/hooks/useBootSequence';
 import { useOSStore } from '@/store/useOSStore';
 import { BootScreen } from '@/components/boot/BootScreen';
@@ -11,6 +12,7 @@ import { Desktop } from '@/components/desktop/Desktop';
 export function OSController() {
   const osState = useOSStore((s) => s.osState);
   useBootSequence();
+  useOSLifecycle();
 
   switch (osState) {
     case 'booting':

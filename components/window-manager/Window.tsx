@@ -35,6 +35,14 @@ const Settings = dynamic(
   () => import('@/components/apps/Settings/Settings').then((m) => m.Settings),
   { ssr: false, loading: () => <AppLoading /> }
 );
+const ImageViewer = dynamic(
+  () => import('@/components/apps/ImageViewer/ImageViewer').then((m) => m.ImageViewer),
+  { ssr: false, loading: () => <AppLoading /> }
+);
+const PdfViewer = dynamic(
+  () => import('@/components/apps/PdfViewer/PdfViewer').then((m) => m.PdfViewer),
+  { ssr: false, loading: () => <AppLoading /> }
+);
 
 function AppLoading() {
   return (
@@ -58,6 +66,10 @@ function AppContent({ appType }: { appType: WindowInstance['appType'] }) {
       return <Browser />;
     case 'file-manager':
       return <FileManager />;
+    case 'image-viewer':
+      return <ImageViewer />;
+    case 'pdf-viewer':
+      return <PdfViewer />;
     case 'settings':
       return <Settings />;
     default:

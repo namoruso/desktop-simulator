@@ -67,9 +67,17 @@ export function getNextPid(
   }
 }
 
-export function buildReadyQueue(processes: OSProcess[]): number[] {
+export function buildReadyQueue(
+  processes: OSProcess[],
+  suspendedPids?: Set<number>
+): number[] {
   return pickSchedulerProcesses(processes)
-    .filter((p) => p.state === 'ready')
+    .filter(
+      (p) =>
+        p.state === 'ready' &&
+        p.ioWaitMs <= 0 &&
+        !(suspendedPids?.has(p.pid) ?? false)
+    )
     .sort((a, b) => a.priority - b.priority)
     .map((p) => p.pid);
 }

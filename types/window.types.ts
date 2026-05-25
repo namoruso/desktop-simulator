@@ -5,6 +5,8 @@ export type AppType =
   | 'calculator'
   | 'browser'
   | 'file-manager'
+  | 'image-viewer'
+  | 'pdf-viewer'
   | 'settings';
 
 export interface WindowInstance {

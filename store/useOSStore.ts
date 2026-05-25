@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { OSState } from '@/types/os.types';
+import { APP_VERSION } from '@/lib/constants';
 
 interface OSStore {
   osState: OSState;
@@ -23,7 +24,7 @@ export const useOSStore = create<OSStore>()(
       bootTimestamp: null,
       uptimeSeconds: 0,
       osName: 'WebOS',
-      version: '1.0.0',
+      version: APP_VERSION,
 
       boot: () =>
         set({

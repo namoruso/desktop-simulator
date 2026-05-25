@@ -46,7 +46,8 @@ function classifyDrive(
 ): StorageDrive['type'] {
   if (isUsb) return 'usb';
   if (mount === '/') return 'system';
-  if (mount === os.homedir() || mount.startsWith('/home')) return 'home';
+  if (mount === os.homedir()) return 'home';
+  if (mount === '/home') return 'disk';
   if (rm) return 'disk';
   return 'other';
 }
@@ -188,5 +189,5 @@ export async function collectStorage(): Promise<StorageSnapshot> {
     return (order[a.type] ?? 9) - (order[b.type] ?? 9);
   });
 
-  return { drives, physicalRamGB, swapTotalGB, swapUsedGB };
+  return { drives, physicalRamGB, swapTotalGB, swapUsedGB, userHome: os.homedir() };
 }

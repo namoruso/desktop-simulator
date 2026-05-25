@@ -21,6 +21,8 @@ export interface StorageSnapshot {
   physicalRamGB: number;
   swapTotalGB: number;
   swapUsedGB: number;
+  /** Absolute path to the logged-in user's home directory */
+  userHome: string;
 }
 
 export interface FileEntry {
