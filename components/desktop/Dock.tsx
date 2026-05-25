@@ -16,7 +16,7 @@ export function Dock() {
   const hasOpen = openTypes.size > 0;
 
   return (
-    <footer className="pointer-events-none absolute bottom-3 left-0 right-0 z-50 flex flex-col items-center gap-2">
+    <footer className="pointer-events-none absolute bottom-4 left-0 right-0 z-50 flex flex-col items-center gap-2.5">
       {hasOpen && (
         <div className="pointer-events-none flex max-w-[90vw] flex-wrap justify-center gap-1.5 px-2">
           {windows
@@ -27,10 +27,10 @@ export function Dock() {
                 type="button"
                 onClick={() => useWindowStore.getState().focusWindow(w.id)}
                 className={clsx(
-                  'pointer-events-auto max-w-[140px] truncate rounded-full px-3 py-1 text-[10px] font-medium transition',
+                  'os-interactive os-focus-ring pointer-events-auto max-w-[160px] truncate rounded-full px-3 py-1 text-[10px] font-semibold',
                   w.isFocused
-                    ? 'bg-white/20 text-white ring-1 ring-white/30'
-                    : 'bg-black/40 text-slate-400 hover:bg-white/10 hover:text-slate-200'
+                    ? 'bg-[var(--accent)]/30 text-white ring-1 ring-[var(--accent)]/40'
+                    : 'border border-[var(--separator)] bg-black/40 text-[var(--text-muted)] hover:bg-white/10 hover:text-[var(--text-primary)]'
                 )}
               >
                 {w.title}
@@ -41,8 +41,8 @@ export function Dock() {
 
       <div
         className={clsx(
-          'dock-glass pointer-events-auto flex items-end gap-0.5 rounded-2xl px-2 py-2',
-          hasOpen && 'ring-1 ring-white/15'
+          'dock-glass pointer-events-auto flex items-end gap-1 rounded-2xl px-2.5 py-2.5',
+          hasOpen && 'ring-1 ring-white/20'
         )}
       >
         {DOCK_APPS.map((appType) => {
@@ -64,9 +64,9 @@ export function Dock() {
                 launchApp(appType, true);
               }}
               className={clsx(
-                'group relative flex flex-col items-center px-1.5 pb-1 pt-0.5 transition-all duration-200',
-                isFocused && '-translate-y-3',
-                isOpen && !isFocused && '-translate-y-1'
+                'os-interactive os-focus-ring group relative flex flex-col items-center rounded-xl px-1.5 pb-1 pt-0.5 transition-all duration-200 ease-out',
+                isFocused && '-translate-y-3.5 scale-105',
+                isOpen && !isFocused && '-translate-y-1.5'
               )}
             >
               <div
@@ -83,18 +83,18 @@ export function Dock() {
                   appType={appType}
                   size={isFocused ? 28 : 24}
                   className={clsx(
-                    isFocused ? 'text-white' : 'text-slate-300 group-hover:text-white'
+                    isFocused ? 'text-white' : 'text-[var(--text-muted)] group-hover:text-white'
                   )}
                 />
                 {instances.length > 1 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-indigo-500 px-1 text-[9px] font-bold text-white">
+                  <span className="mac-badge absolute -right-0.5 -top-0.5 h-4 min-w-[16px] text-[9px]">
                     {instances.length}
                   </span>
                 )}
               </div>
 
               {showLabels && (
-                <span className="mt-0.5 max-w-[72px] truncate text-[9px] text-slate-400">
+                <span className="mt-0.5 max-w-[72px] truncate text-[9px] text-[var(--text-muted)]">
                   {APP_LABELS[appType]}
                 </span>
               )}

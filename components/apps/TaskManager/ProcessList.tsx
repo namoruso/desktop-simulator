@@ -44,14 +44,15 @@ export function ProcessList() {
 
   return (
     <div className="overflow-x-auto">
-      <p className="mb-2 text-[10px] leading-relaxed text-slate-500">
+      <p className="mb-2 text-[10px] leading-relaxed text-[var(--text-muted)]">
         Live host processes (systeminformation). <strong>Sim Kill</strong> updates
         WebOS only. <strong>Host Kill</strong> sends SIGTERM to the real process.
         Suspend/resume affect the scheduler simulation only.
       </p>
-      <table className="w-full text-left text-xs">
+      <div className="mac-table-wrap">
+      <table className="mac-table">
         <thead>
-          <tr className="border-b border-white/10 text-slate-400">
+          <tr>
             <th className="px-2 py-1">PID</th>
             <th className="px-2 py-1">Name</th>
             <th className="px-2 py-1">State</th>
@@ -73,7 +74,7 @@ export function ProcessList() {
               <td className="px-2 py-1 font-mono">{p.pid}</td>
               <td className="max-w-[140px] truncate px-2 py-1">{p.name}</td>
               <td className="px-2 py-1 capitalize">{p.state}</td>
-              <td className="px-2 py-1 text-slate-500">
+              <td className="px-2 py-1 text-[var(--text-muted)]">
                 {p.ioWaitMs > 0 ? `${p.ioWaitMs}ms` : '—'}
               </td>
               <td className="px-2 py-1">{p.cpuUsage.toFixed(1)}</td>
@@ -107,6 +108,7 @@ export function ProcessList() {
           ))}
         </tbody>
       </table>
+      </div>
 
       <ConfirmDialog
         open={hostKillPid !== null}
@@ -139,7 +141,7 @@ function ActionBtn({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] hover:bg-white/20 disabled:opacity-30"
+      className="mac-btn mac-btn-default mac-btn-sm px-1.5 py-0.5 text-[9px] disabled:opacity-30"
     >
       {label}
     </button>

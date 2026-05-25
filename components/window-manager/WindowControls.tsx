@@ -12,7 +12,7 @@ export function WindowControls({
   onMaximize,
 }: WindowControlsProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 pl-0.5">
       <button
         type="button"
         aria-label="Close"
@@ -20,9 +20,9 @@ export function WindowControls({
           e.stopPropagation();
           onClose();
         }}
-        className="group flex h-3 w-3 items-center justify-center rounded-full bg-[#ff5f57] transition hover:brightness-110"
+        className="group flex h-3 w-3 items-center justify-center rounded-full bg-[var(--mac-red)] transition hover:brightness-95"
       >
-        <span className="text-[8px] font-bold text-red-950 opacity-0 group-hover:opacity-100">
+        <span className="text-[9px] font-bold leading-none text-red-950/0 transition group-hover:text-red-950/80">
           ×
         </span>
       </button>
@@ -33,9 +33,9 @@ export function WindowControls({
           e.stopPropagation();
           onMinimize();
         }}
-        className="group flex h-3 w-3 items-center justify-center rounded-full bg-[#febc2e] transition hover:brightness-110"
+        className="group flex h-3 w-3 items-center justify-center rounded-full bg-[var(--mac-yellow)] transition hover:brightness-95"
       >
-        <span className="text-[8px] font-bold text-amber-950 opacity-0 group-hover:opacity-100">
+        <span className="text-[9px] font-bold leading-none text-amber-950/0 transition group-hover:text-amber-950/80">
           −
         </span>
       </button>
@@ -46,9 +46,9 @@ export function WindowControls({
           e.stopPropagation();
           onMaximize();
         }}
-        className="group flex h-3 w-3 items-center justify-center rounded-full bg-[#28c840] transition hover:brightness-110"
+        className="group flex h-3 w-3 items-center justify-center rounded-full bg-[var(--mac-green)] transition hover:brightness-95"
       >
-        <span className="text-[8px] font-bold text-green-950 opacity-0 group-hover:opacity-100">
+        <span className="text-[9px] font-bold leading-none text-green-950/0 transition group-hover:text-green-950/80">
           +
         </span>
       </button>

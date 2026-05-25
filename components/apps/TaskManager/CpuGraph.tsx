@@ -39,7 +39,7 @@ export function CpuGraph() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
           CPU usage (host)
         </h3>
         <svg width="100%" viewBox={`0 0 ${w} ${h}`} className="rounded-xl bg-black/35 ring-1 ring-white/5">
@@ -65,20 +65,20 @@ export function CpuGraph() {
       </div>
 
       <div>
-        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
           Physical memory ({m.physicalTotalMB || m.totalMB} MB)
         </h3>
         <div className="flex h-12 overflow-hidden rounded-xl bg-black/35 ring-1 ring-white/5">
           {appsPct > 0 && (
             <div
-              className="h-full bg-indigo-500 transition-all"
+              className="h-full bg-[var(--accent)] transition-all"
               style={{ width: `${appsPct}%` }}
               title={`Apps ${m.appsUsedMB} MB`}
             />
           )}
           {simPct > 0 && (
             <div
-              className="h-full bg-violet-500 transition-all"
+              className="h-full bg-purple-500 transition-all"
               style={{ width: `${simPct}%` }}
               title={`WebOS ${m.simUsedMB} MB`}
             />
@@ -92,7 +92,7 @@ export function CpuGraph() {
           )}
           {cachePct > 0 && (
             <div
-              className="h-full bg-slate-600 transition-all"
+              className="h-full bg-white/20 transition-all"
               style={{ width: `${cachePct}%` }}
               title={`Cache ${m.cachedMB} MB`}
             />
@@ -105,7 +105,7 @@ export function CpuGraph() {
             />
           )}
         </div>
-        <ul className="mt-3 grid gap-1 text-[11px] text-slate-400 sm:grid-cols-2">
+        <ul className="mt-3 grid gap-1 text-[11px] text-[var(--text-muted)] sm:grid-cols-2">
           <li>Applications (RSS): {m.appsUsedMB} MB</li>
           <li>WebOS simulator: {m.simUsedMB} MB</li>
           <li>Active: {m.activeMB} MB · Inactive: {m.inactiveMB} MB</li>
@@ -116,11 +116,11 @@ export function CpuGraph() {
       </div>
 
       <div>
-        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
           Swap
         </h3>
         <ProgressBar percent={swapPct} />
-        <p className="mt-1 text-[11px] text-slate-500">
+        <p className="mt-1 text-[11px] text-[var(--text-muted)]">
           {m.swapUsedMB} / {m.swapTotalMB} MB used
           {storage && ` · Physical RAM: ${storage.physicalRamGB} GB`}
         </p>
@@ -128,26 +128,26 @@ export function CpuGraph() {
 
       {storage && storage.drives.length > 0 && (
         <div>
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
             Storage volumes
           </h3>
           <ul className="space-y-2">
             {storage.drives.slice(0, 6).map((d) => (
               <li
                 key={d.id}
-                className="rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-[11px]"
+                className="rounded-lg border border-[var(--separator)] bg-[var(--app-bg-elevated)] px-3 py-2 text-[11px]"
               >
-                <div className="flex justify-between text-slate-300">
+                <div className="flex justify-between text-[var(--text-muted)]">
                   <span>
                     {d.label}
                     {d.isUSB && (
                       <span className="ml-1 text-amber-400">USB</span>
                     )}
                   </span>
-                  <span className="text-slate-500">{d.usedPercent}%</span>
+                  <span className="text-[var(--text-muted)]">{d.usedPercent}%</span>
                 </div>
                 <ProgressBar percent={d.usedPercent} className="mt-2" />
-                <p className="mt-1 font-mono text-[10px] text-slate-600">
+                <p className="mt-1 font-mono text-[10px] text-[var(--text-subtle)]">
                   {d.mount}
                 </p>
               </li>

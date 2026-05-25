@@ -24,7 +24,7 @@ import clsx from 'clsx';
 import { useStorageStore } from '@/store/useStorageStore';
 import type { StorageDrive, FileEntry } from '@/types/storage.types';
 import { Btn, ProgressBar } from '@/components/ui/os-ui';
-import { AppShell } from '@/components/ui/AppShell';
+import { AppShell, AppToolbar, ToolbarButton } from '@/components/ui/AppShell';
 import { ConfirmDialog, PromptDialog } from '@/components/ui/OSDialog';
 import { openFileInEditor, isEditableTextFile } from '@/lib/editorBridge';
 import { openFileInImageViewer, openFileInPdfViewer } from '@/lib/mediaBridge';
@@ -50,7 +50,7 @@ function formatSize(bytes: number): string {
 function driveIcon(type: StorageDrive['type']) {
   if (type === 'usb') return <Usb size={18} className="text-amber-400" />;
   if (type === 'home') return <Home size={18} className="text-sky-400" />;
-  return <HardDrive size={18} className="text-slate-400" />;
+  return <HardDrive size={18} className="text-[var(--text-muted)]" />;
 }
 
 export function FileManager() {
@@ -183,12 +183,8 @@ export function FileManager() {
       )}
 
       <div className="flex min-h-0 flex-1">
-        <aside className="flex w-52 shrink-0 flex-col border-r border-white/10 bg-black/20">
-          <div className="border-b border-white/10 px-3 py-2.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-              Locations
-            </span>
-          </div>
+        <aside className="mac-sidebar w-52">
+          <div className="mac-sidebar-section">Locations</div>
           <ul className="flex-1 overflow-auto p-2 space-y-1">
             {drives.map((drive) => (
               <DriveButton
@@ -200,7 +196,7 @@ export function FileManager() {
             ))}
           </ul>
           {snapshot && (
-            <div className="border-t border-white/10 p-3 text-[10px] text-slate-500">
+            <div className="border-t border-[var(--separator)] p-3 text-[10px] text-[var(--text-muted)]">
               <p>RAM: {snapshot.physicalRamGB} GB</p>
               <p>
                 Swap: {snapshot.swapUsedGB} / {snapshot.swapTotalGB} GB
@@ -248,8 +244,8 @@ export function FileManager() {
           />
 
           {transferOpen && (
-            <div className="flex flex-wrap gap-2 border-b border-white/10 bg-indigo-500/10 px-3 py-2">
-              <span className="w-full text-[10px] font-medium text-indigo-200">
+            <div className="flex flex-wrap gap-2 border-b border-[var(--separator)] bg-[var(--accent)]/10 px-3 py-2">
+              <span className="w-full text-[10px] font-medium text-[var(--accent)]">
                 Send &quot;{selected?.name ?? '…'}&quot; to:
               </span>
               {drives
@@ -269,7 +265,7 @@ export function FileManager() {
                   </Btn>
                 ))}
               {!selected && (
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-[var(--text-muted)]">
                   Select a file or folder first
                 </span>
               )}
@@ -278,12 +274,12 @@ export function FileManager() {
 
           <div className="flex min-h-0 flex-1">
             <div
-              className="relative flex min-w-0 flex-[3] flex-col border-r border-white/10"
+              className="relative flex min-w-0 flex-[3] flex-col border-r border-[var(--separator)]"
               onDragOver={handleHostDragOver}
               onDragLeave={handleHostDragLeave}
               onDrop={handleHostDrop}
             >
-              <div className="truncate border-b border-white/10 px-3 py-1.5 font-mono text-[10px] text-slate-400">
+              <div className="truncate border-b border-[var(--separator)] px-3 py-1.5 font-mono text-[10px] text-[var(--text-muted)]">
                 {currentPath ?? '—'}
                 {hostDragOver && (
                   <span className="ml-2 text-emerald-400">· Drop to upload</span>
@@ -298,9 +294,9 @@ export function FileManager() {
               )}
               <ul className="flex-1 overflow-auto p-1">
                 {loading && entries.length === 0 ? (
-                  <li className="p-6 text-center text-slate-500">Loading…</li>
+                  <li className="p-6 text-center text-[var(--text-muted)]">Loading…</li>
                 ) : entries.length === 0 ? (
-                  <li className="p-6 text-center text-slate-500">Empty folder</li>
+                  <li className="p-6 text-center text-[var(--text-muted)]">Empty folder</li>
                 ) : (
                   entries.map((entry) => (
                     <FileRow
@@ -348,7 +344,7 @@ export function FileManager() {
             </div>
 
             <div className="flex min-w-0 flex-[2] flex-col">
-              <div className="border-b border-white/10 px-3 py-2 text-xs text-slate-400">
+              <div className="border-b border-[var(--separator)] px-3 py-2 text-xs text-[var(--text-muted)]">
                 {selected
                   ? `${selected.name} · ${selected.isDirectory ? 'Folder' : formatSize(selected.size)}`
                   : 'Select an item'}
@@ -357,14 +353,14 @@ export function FileManager() {
               !selected.isDirectory &&
               isImageFile(selected.name, selected.size) ? (
                 <div className="flex flex-1 flex-col overflow-hidden">
-                  <div className="flex flex-1 items-center justify-center overflow-auto bg-black/30 p-2">
+                  <div className="flex flex-1 items-center justify-center overflow-auto bg-[rgba(0,0,0,0.2)] p-2">
                     <img
                       src={getRawFileUrl(selected.path)}
                       alt={selected.name}
                       className="max-h-full max-w-full object-contain"
                     />
                   </div>
-                  <div className="border-t border-white/10 p-2">
+                  <div className="border-t border-[var(--separator)] p-2">
                     <Btn variant="primary" onClick={handleOpenInImageViewer}>
                       <ImageIcon size={12} />
                       Open in Image Viewer
@@ -376,7 +372,7 @@ export function FileManager() {
                 isPdfFile(selected.name, selected.size) ? (
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
                   <FileType size={40} className="text-red-400/80" />
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-[var(--text-muted)]">
                     PDF document · {formatSize(selected.size)}
                   </p>
                   <Btn variant="primary" onClick={handleOpenInPdfViewer}>
@@ -385,7 +381,7 @@ export function FileManager() {
                   </Btn>
                 </div>
               ) : (
-                <pre className="flex-1 overflow-auto p-3 font-mono text-[11px] text-slate-300 whitespace-pre-wrap">
+                <pre className="flex-1 overflow-auto p-3 font-mono text-[11px] text-[var(--text-muted)] whitespace-pre-wrap">
                   {selected?.isDirectory
                     ? `Folder: ${selected.path}\n\n${entries.length} items`
                     : preview ??
@@ -395,7 +391,7 @@ export function FileManager() {
               {selected &&
                 !selected.isDirectory &&
                 isEditableTextFile(selected.name, selected.size) && (
-                  <div className="border-t border-white/10 p-2">
+                  <div className="border-t border-[var(--separator)] p-2">
                     <Btn variant="primary" onClick={handleOpenInEditor}>
                       <FileText size={12} />
                       Open in Text Editor
@@ -477,19 +473,18 @@ function DriveButton({
         onClick={onOpen}
         disabled={!drive.mount}
         className={clsx(
-          'w-full rounded-lg px-2 py-2 text-left transition',
-          active && 'bg-[var(--accent)]/25 ring-1 ring-[var(--accent)]/50',
-          drive.isUSB && !active && 'ring-1 ring-amber-500/30 hover:bg-amber-500/10',
-          !active && !drive.isUSB && 'hover:bg-white/5'
+          'mac-list-item w-full flex-col items-stretch py-2',
+          active && 'mac-list-item-active',
+          drive.isUSB && !active && 'ring-1 ring-amber-500/30'
         )}
       >
         <div className="flex items-center gap-2">
           {driveIcon(drive.type)}
           <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-medium text-slate-200">
+            <div className="truncate text-xs font-medium text-[var(--text-primary)]">
               {drive.label}
             </div>
-            <div className="truncate font-mono text-[9px] text-slate-500">
+            <div className="truncate font-mono text-[9px] text-[var(--text-muted)]">
               {drive.mount}
             </div>
           </div>
@@ -497,7 +492,7 @@ function DriveButton({
         {drive.totalGB > 0 && (
           <div className="mt-2">
             <ProgressBar percent={drive.usedPercent} />
-            <p className="mt-1 text-[9px] text-slate-500">
+            <p className="mt-1 text-[9px] text-[var(--text-muted)]">
               {drive.freeGB} GB free of {drive.totalGB} GB
             </p>
           </div>
@@ -549,76 +544,59 @@ function Toolbar({
   canCopy: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-white/10 px-2 py-2">
-      <ToolIcon
-        icon={<ChevronUp size={16} />}
-        title="Up"
-        disabled={!parentPath}
-        onClick={onUp}
-      />
-      <ToolIcon
-        icon={<RefreshCw size={16} className={loading ? 'animate-spin' : ''} />}
-        title="Refresh"
-        onClick={onRefresh}
-      />
-      <ToolIcon icon={<FolderPlus size={16} />} title="New folder" onClick={onMkdir} />
-      <div className="mx-1 h-5 w-px bg-white/10" />
-      <ToolIcon icon={<Copy size={16} />} title="Copy" disabled={!canCopy} onClick={onCopy} />
-      <ToolIcon icon={<Pencil size={16} />} title="Rename" disabled={!canCopy} onClick={onRename} />
-      <ToolIcon icon={<Trash2 size={16} />} title="Delete" disabled={!canCopy} onClick={onDelete} />
-      <ToolIcon
-        icon={<FileText size={16} />}
+    <AppToolbar>
+      <ToolbarButton title="Up" disabled={!parentPath} onClick={onUp}>
+        <ChevronUp size={16} />
+      </ToolbarButton>
+      <ToolbarButton title="Refresh" onClick={onRefresh}>
+        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+      </ToolbarButton>
+      <ToolbarButton title="New folder" onClick={onMkdir}>
+        <FolderPlus size={16} />
+      </ToolbarButton>
+      <div className="mx-0.5 h-5 w-px bg-white/[0.08]" />
+      <ToolbarButton title="Copy" disabled={!canCopy} onClick={onCopy}>
+        <Copy size={16} />
+      </ToolbarButton>
+      <ToolbarButton title="Rename" disabled={!canCopy} onClick={onRename}>
+        <Pencil size={16} />
+      </ToolbarButton>
+      <ToolbarButton title="Delete" disabled={!canCopy} onClick={onDelete}>
+        <Trash2 size={16} />
+      </ToolbarButton>
+      <ToolbarButton
         title="Open in Text Editor"
         disabled={!canOpenInEditor}
         onClick={onOpenInEditor}
-      />
-      <ToolIcon
-        icon={<ImageIcon size={16} />}
+      >
+        <FileText size={16} />
+      </ToolbarButton>
+      <ToolbarButton
         title="Open in Image Viewer"
         disabled={!canOpenInImageViewer}
         onClick={onOpenInImageViewer}
-      />
-      <ToolIcon
-        icon={<FileType size={16} />}
+      >
+        <ImageIcon size={16} />
+      </ToolbarButton>
+      <ToolbarButton
         title="Open in PDF Viewer"
         disabled={!canOpenInPdfViewer}
         onClick={onOpenInPdfViewer}
-      />
-      <ToolIcon
-        icon={<ClipboardPaste size={16} />}
+      >
+        <FileType size={16} />
+      </ToolbarButton>
+      <ToolbarButton
         title="Paste"
         disabled={!hasClipboard || !currentPath}
         onClick={onPaste}
-      />
+      >
+        <ClipboardPaste size={16} />
+      </ToolbarButton>
       <Btn variant="primary" onClick={onTransfer} title="Copy to another drive">
         <Send size={14} />
         Send to…
       </Btn>
-    </div>
-  );
-}
-
-function ToolIcon({
-  icon,
-  title,
-  onClick,
-  disabled,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      title={title}
-      disabled={disabled}
-      onClick={onClick}
-      className="rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
-    >
-      {icon}
-    </button>
+    </AppToolbar>
   );
 }
 
@@ -685,13 +663,13 @@ function FileRow({
         {entry.isDirectory ? (
           <Folder size={18} className="shrink-0 text-amber-400/90" />
         ) : (
-          <File size={18} className="shrink-0 text-slate-400" />
+          <File size={18} className="shrink-0 text-[var(--text-muted)]" />
         )}
         <span className="min-w-0 flex-1 truncate">{entry.name}</span>
-        <span className="text-[10px] text-slate-500">
+        <span className="text-[10px] text-[var(--text-muted)]">
           {entry.isDirectory ? '' : formatSize(entry.size)}
         </span>
-        <span className="hidden text-[10px] text-slate-600 sm:inline">
+        <span className="hidden text-[10px] text-[var(--text-subtle)] sm:inline">
           {format(new Date(entry.modified), 'MMM d HH:mm')}
         </span>
       </button>

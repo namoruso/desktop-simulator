@@ -24,7 +24,7 @@ const DEFAULT_SIZES: Record<AppType, { width: number; height: number }> = {
   'file-manager': { width: 820, height: 560 },
   'image-viewer': { width: 760, height: 580 },
   'pdf-viewer': { width: 900, height: 640 },
-  settings: { width: 560, height: 480 },
+  settings: { width: 780, height: 520 },
 };
 
 let windowOffset = 0;

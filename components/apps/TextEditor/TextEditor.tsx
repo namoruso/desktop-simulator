@@ -8,7 +8,7 @@ import {
   Loader2,
   Circle,
 } from 'lucide-react';
-import { AppShell, ToolbarButton } from '@/components/ui/AppShell';
+import { AppShell, AppToolbar, ToolbarButton } from '@/components/ui/AppShell';
 import { Btn } from '@/components/ui/os-ui';
 import { PromptDialog, RecentFilesDialog } from '@/components/ui/OSDialog';
 import { useEditorStore } from '@/store/useEditorStore';
@@ -68,7 +68,7 @@ export function TextEditor() {
 
   return (
     <AppShell>
-      <div className="flex flex-wrap items-center gap-1 border-b border-white/10 bg-black/25 px-2 py-2">
+      <AppToolbar>
         <ToolbarButton title="New file" onClick={newFile}>
           <FilePlus size={16} />
         </ToolbarButton>
@@ -82,9 +82,9 @@ export function TextEditor() {
           Save As…
         </Btn>
         {loading && (
-          <Loader2 size={14} className="ml-1 animate-spin text-slate-400" />
+          <Loader2 size={14} className="ml-1 animate-spin text-[var(--text-muted)]" />
         )}
-        <div className="ml-auto flex items-center gap-2 truncate text-[10px] text-slate-500">
+        <div className="ml-auto flex items-center gap-2 truncate text-[10px] text-[var(--text-muted)]">
           {dirty && (
             <span className="flex items-center gap-1 text-amber-400">
               <Circle size={6} fill="currentColor" /> Unsaved
@@ -93,7 +93,7 @@ export function TextEditor() {
           <span className="hidden font-mono sm:inline">{filePath ?? 'New file'}</span>
           <span>{lines} lines</span>
         </div>
-      </div>
+      </AppToolbar>
 
       <textarea
         value={content}
@@ -105,11 +105,11 @@ export function TextEditor() {
           }
         }}
         placeholder="Start typing… Open text files from File Manager (double-click or Open in Editor)."
-        className="min-h-0 flex-1 resize-none bg-[rgba(8,10,18,0.6)] p-4 font-mono text-sm leading-relaxed text-slate-200 outline-none selection:bg-[var(--accent)]/30"
+        className="min-h-0 flex-1 resize-none bg-[rgba(8,10,18,0.6)] p-4 font-mono text-sm leading-relaxed text-[var(--text-primary)] outline-none selection:bg-[var(--accent)]/30"
         spellCheck={false}
       />
 
-      <footer className="border-t border-white/10 px-3 py-1.5 text-[10px] text-slate-500">
+      <footer className="border-t border-[var(--separator)] px-3 py-1.5 text-[10px] text-[var(--text-muted)]">
         {fileName} · Ctrl+S to save · Host filesystem (home, /media, /mnt)
       </footer>
 

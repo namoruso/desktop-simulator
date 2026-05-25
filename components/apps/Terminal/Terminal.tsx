@@ -602,7 +602,7 @@ export function Terminal() {
       </div>
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-2 border-t border-emerald-900/40 bg-black/40 px-3 py-2"
+        className="flex items-center gap-2 border-t border-emerald-900/40 bg-[rgba(0,0,0,0.25)] px-3 py-2"
       >
         <span className="shrink-0 text-emerald-500">
           {cwd ? `${cwd.split('/').pop()}$` : '$'}

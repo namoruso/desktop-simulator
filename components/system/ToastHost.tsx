@@ -11,11 +11,11 @@ const ICONS: Record<ToastVariant, React.ReactNode> = {
   warning: <AlertTriangle size={16} />,
 };
 
-const STYLES: Record<ToastVariant, string> = {
-  info: 'border-sky-500/30 bg-sky-500/15 text-sky-100',
-  success: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-100',
-  error: 'border-red-500/30 bg-red-500/15 text-red-100',
-  warning: 'border-amber-500/30 bg-amber-500/15 text-amber-100',
+const VARIANT_DOT: Record<ToastVariant, string> = {
+  info: 'bg-sky-400',
+  success: 'bg-emerald-400',
+  error: 'bg-red-400',
+  warning: 'bg-amber-400',
 };
 
 export function ToastHost() {
@@ -33,17 +33,24 @@ export function ToastHost() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={clsx(
-            'pointer-events-auto flex items-start gap-2 rounded-xl border px-3 py-2.5 text-xs shadow-xl backdrop-blur-xl toast-enter',
-            STYLES[t.variant]
-          )}
+          className="os-glass-popover pointer-events-auto flex items-start gap-2.5 rounded-xl px-3 py-2.5 text-[12px] toast-enter"
         >
-          <span className="mt-0.5 shrink-0">{ICONS[t.variant]}</span>
-          <p className="min-w-0 flex-1 leading-relaxed">{t.message}</p>
+          <span
+            className={clsx(
+              'mt-1.5 h-2 w-2 shrink-0 rounded-full',
+              VARIANT_DOT[t.variant]
+            )}
+          />
+          <span className="mt-0.5 shrink-0 text-[var(--text-muted)]">
+            {ICONS[t.variant]}
+          </span>
+          <p className="min-w-0 flex-1 leading-relaxed text-[var(--text-primary)]">
+            {t.message}
+          </p>
           <button
             type="button"
             onClick={() => dismiss(t.id)}
-            className="shrink-0 rounded p-0.5 opacity-70 hover:opacity-100"
+            className="mac-icon-btn shrink-0 p-0.5"
             aria-label="Dismiss"
           >
             <X size={14} />

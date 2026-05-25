@@ -16,7 +16,7 @@ import {
   toBrowseFrameUrl,
   isAllowedUrl,
 } from '@/lib/browserUrl';
-import { AppShell, ToolbarButton } from '@/components/ui/AppShell';
+import { AppShell, AppToolbar, ToolbarButton } from '@/components/ui/AppShell';
 
 const HOME = 'https://www.wikipedia.org';
 const LOAD_TIMEOUT_MS = 12000;
@@ -114,7 +114,7 @@ export function Browser() {
 
   return (
     <AppShell>
-      <div className="flex items-center gap-1 border-b border-white/10 bg-black/30 px-2 py-2">
+      <AppToolbar>
         <ToolbarButton onClick={back} title="Back" disabled={idx === 0}>
           <ArrowLeft size={16} />
         </ToolbarButton>
@@ -136,29 +136,29 @@ export function Browser() {
         </ToolbarButton>
 
         <div className="relative flex flex-1 items-center">
-          <Search size={14} className="absolute left-2.5 text-slate-500" />
+          <Search size={14} className="absolute left-2.5 text-[var(--text-muted)]" />
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && navigate(input)}
             placeholder="Search the web or enter URL…"
-            className="w-full rounded-lg border border-white/10 bg-black/40 py-2 pl-8 pr-3 text-xs text-slate-200 outline-none focus:border-[var(--accent)]/50"
+            className="mac-field flex-1 py-2 pl-8 pr-3 text-[12px]"
           />
         </div>
 
         <button
           type="button"
           onClick={() => navigate(input)}
-          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-medium text-white hover:brightness-110"
+          className="mac-btn mac-btn-primary px-4 py-2 text-[12px]"
         >
           Go
         </button>
         <ToolbarButton onClick={openExternal} title="Open in system browser">
           <ExternalLink size={16} />
         </ToolbarButton>
-      </div>
+      </AppToolbar>
 
-      <div className="flex items-center gap-2 border-b border-white/5 px-3 py-1 text-[10px] text-slate-500">
+      <div className="flex items-center gap-2 border-b border-[var(--separator)] px-3 py-1 text-[10px] text-[var(--text-muted)]">
         <span className="flex-1 truncate">{displayUrl}</span>
         <button
           type="button"
@@ -168,7 +168,7 @@ export function Browser() {
             navigate(input, next);
           }}
           className={`flex items-center gap-1 rounded px-2 py-0.5 ${
-            useProxy ? 'bg-[var(--accent)]/20 text-indigo-300' : 'hover:bg-white/5'
+            useProxy ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'hover:bg-white/5'
           }`}
         >
           <Shield size={10} />
@@ -178,9 +178,9 @@ export function Browser() {
 
       <div className="relative min-h-0 flex-1 bg-white">
         {loading && !blockReason && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/25 backdrop-blur-sm">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[var(--app-bg-elevated)] backdrop-blur-sm">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
-            <p className="text-xs text-slate-300">Loading page…</p>
+            <p className="text-xs text-[var(--text-muted)]">Loading page…</p>
           </div>
         )}
 
@@ -188,12 +188,12 @@ export function Browser() {
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[var(--app-bg)] p-6 text-center">
             <AlertTriangle size={32} className="text-amber-400" />
             <div>
-              <p className="text-sm font-medium text-slate-200">
+              <p className="text-sm font-medium text-[var(--text-primary)]">
                 {blockReason === 'timeout' && 'This page is taking too long to load'}
                 {blockReason === 'proxy-failed' && 'Could not load via proxy either'}
                 {blockReason === 'embed' && 'This site blocks embedded browsing'}
               </p>
-              <p className="mt-2 max-w-md text-xs text-slate-500">
+              <p className="mt-2 max-w-md text-xs text-[var(--text-muted)]">
                 Many websites block iframes (X-Frame-Options). Try enabling the
                 proxy, or open the page in your system browser.
               </p>
@@ -203,7 +203,7 @@ export function Browser() {
                 <button
                   type="button"
                   onClick={tryProxyFallback}
-                  className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs text-white"
+                  className="mac-btn mac-btn-primary px-4 py-2 text-[12px]"
                 >
                   Try proxy mode
                 </button>
@@ -211,7 +211,7 @@ export function Browser() {
               <button
                 type="button"
                 onClick={openExternal}
-                className="rounded-lg border border-white/10 px-4 py-2 text-xs text-slate-300 hover:bg-white/5"
+                className="mac-btn mac-btn-default px-4 py-2 text-[12px]"
               >
                 Open externally
               </button>
@@ -221,7 +221,7 @@ export function Browser() {
                   setBlockReason(null);
                   navigate(input);
                 }}
-                className="rounded-lg border border-white/10 px-4 py-2 text-xs text-slate-300 hover:bg-white/5"
+                className="mac-btn mac-btn-default px-4 py-2 text-[12px]"
               >
                 Retry
               </button>

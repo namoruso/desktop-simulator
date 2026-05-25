@@ -112,7 +112,7 @@ function ContextMenu({
 }) {
   return (
     <div
-      className="fixed z-[9999] min-w-[200px] overflow-hidden rounded-xl border border-white/10 bg-[rgba(22,26,38,0.97)] py-1 shadow-2xl backdrop-blur-xl"
+      className="os-glass-popover fixed z-[9999] min-w-[220px] overflow-hidden rounded-xl py-1.5"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -154,11 +154,7 @@ function CtxItem({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/10"
-      onClick={onClick}
-    >
+    <button type="button" className="os-menu-item" onClick={onClick}>
       {icon}
       {label}
     </button>

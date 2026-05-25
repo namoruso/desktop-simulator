@@ -8,30 +8,30 @@ export function PowerScreen() {
   const version = useOSStore((s) => s.version);
 
   return (
-    <div className="relative flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#0a0a0f]">
+    <div className="relative flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#1c1c1e]">
       <div
-        className="absolute inset-0 opacity-40"
+        className="absolute inset-0 opacity-50"
         style={{
           backgroundImage:
-            'radial-gradient(ellipse 60% 50% at 50% 40%, rgba(124,108,240,0.25), transparent)',
+            'radial-gradient(ellipse 60% 50% at 50% 40%, rgba(10,132,255,0.2), transparent)',
         }}
       />
       <div className="relative z-10 flex flex-col items-center text-center">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-2xl shadow-indigo-500/30">
+        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[22px] bg-[var(--accent)] shadow-2xl shadow-black/40 ring-1 ring-white/15">
           <span className="text-3xl font-bold text-white">W</span>
         </div>
-        <h1 className="text-4xl font-semibold tracking-tight text-white">
+        <h1 className="text-4xl font-semibold tracking-tight text-[var(--text-primary)]">
           WebOS
         </h1>
-        <p className="mt-2 text-sm text-slate-500">Simulator {version}</p>
-        <p className="mt-1 max-w-sm text-xs text-slate-600">
+        <p className="mt-2 text-sm text-[var(--text-muted)]">Simulator {version}</p>
+        <p className="mt-1 max-w-sm text-xs text-[var(--text-subtle)]">
           Live system metrics from your machine · Process scheduler · Memory
           visualization
         </p>
         <button
           type="button"
           onClick={boot}
-          className="mt-10 flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-8 py-3.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:scale-[1.02] hover:shadow-indigo-500/40 active:scale-[0.98]"
+          className="mac-btn mac-btn-primary mt-10 gap-2 rounded-full px-8 py-3.5 shadow-lg shadow-black/30 transition hover:scale-[1.02] active:scale-[0.98]"
         >
           <Power size={18} strokeWidth={2} />
           Power On

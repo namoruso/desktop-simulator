@@ -27,7 +27,18 @@ import { useStorageStore } from '@/store/useStorageStore';
 import { useOSStore } from '@/store/useOSStore';
 import type { SchedulerAlgorithm } from '@/types/process.types';
 import { APP_VERSION } from '@/lib/constants';
-import { SettingRow, Toggle, SectionTitle, ProgressBar } from '@/components/ui/os-ui';
+import {
+  MacPage,
+  MacSettingsGroup,
+  MacSettingsRow,
+  MacToggle,
+  MacSelect,
+  MacColorPicker,
+  MacRange,
+  MacButton,
+  SectionTitle,
+  ProgressBar,
+} from '@/components/ui/os-ui';
 import { useHostAudio } from '@/hooks/useHostAudio';
 import { ConfirmDialog } from '@/components/ui/OSDialog';
 
@@ -45,15 +56,15 @@ type Category =
   | 'about';
 
 const NAV: { id: Category; label: string; icon: React.ReactNode }[] = [
-  { id: 'appearance', label: 'Appearance', icon: <Palette size={16} /> },
-  { id: 'display', label: 'Display', icon: <Monitor size={16} /> },
-  { id: 'system', label: 'System', icon: <Cpu size={16} /> },
-  { id: 'storage', label: 'Storage', icon: <HardDrive size={16} /> },
-  { id: 'network', label: 'Network', icon: <Wifi size={16} /> },
-  { id: 'notifications', label: 'Notifications', icon: <Bell size={16} /> },
-  { id: 'privacy', label: 'Privacy', icon: <Shield size={16} /> },
-  { id: 'power', label: 'Power', icon: <Power size={16} /> },
-  { id: 'about', label: 'About', icon: <Info size={16} /> },
+  { id: 'appearance', label: 'Appearance', icon: <Palette size={15} /> },
+  { id: 'display', label: 'Display', icon: <Monitor size={15} /> },
+  { id: 'system', label: 'System', icon: <Cpu size={15} /> },
+  { id: 'storage', label: 'Storage', icon: <HardDrive size={15} /> },
+  { id: 'network', label: 'Network', icon: <Wifi size={15} /> },
+  { id: 'notifications', label: 'Notifications', icon: <Bell size={15} /> },
+  { id: 'privacy', label: 'Privacy', icon: <Shield size={15} /> },
+  { id: 'power', label: 'Power', icon: <Power size={15} /> },
+  { id: 'about', label: 'About', icon: <Info size={15} /> },
 ];
 
 export function Settings() {
@@ -91,21 +102,18 @@ export function Settings() {
   };
 
   return (
-    <AppShell className="!flex-row">
-      <nav className="flex w-44 shrink-0 flex-col border-r border-white/10 bg-black/25 py-2">
-        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-          Settings
-        </p>
+    <AppShell className="!min-h-0 !flex-row !bg-[var(--app-bg)]">
+      <nav className="mac-settings-sidebar">
         {NAV.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setCat(item.id)}
             className={clsx(
-              'mx-2 flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition',
+              'mac-settings-nav-item',
               cat === item.id
-                ? 'bg-[var(--accent)]/25 font-medium text-white'
-                : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                ? 'mac-settings-nav-item-active'
+                : 'mac-settings-nav-item-inactive'
             )}
           >
             {item.icon}
@@ -114,321 +122,286 @@ export function Settings() {
         ))}
       </nav>
 
-      <div className="flex-1 overflow-auto p-5">
+      <main className="min-h-0 flex-1 overflow-auto bg-[var(--app-bg)] px-6 py-6">
         {cat === 'appearance' && (
-          <PanelContent title="Appearance">
-            <SettingRow label="Accent color" hint="Used across windows and controls">
-              <input
-                type="color"
-                value={settings.accentColor}
-                onChange={(e) => settings.setAccentColor(e.target.value)}
-                className="h-9 w-20 cursor-pointer rounded border border-white/10 bg-transparent"
-              />
-            </SettingRow>
-            <SettingRow label="Wallpaper">
-              <select
-                value={settings.wallpaper}
-                onChange={(e) =>
-                  settings.setWallpaper(e.target.value as WallpaperStyle)
-                }
-                className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs"
-              >
-                <option value="aurora">Aurora</option>
-                <option value="mountains">Mountains</option>
-                <option value="gradient">Gradient mesh</option>
-                <option value="solid">Solid dark</option>
-              </select>
-            </SettingRow>
-            <SettingRow label="Night mode" hint="Darker UI chrome">
-              <Toggle
-                checked={settings.nightMode}
-                onChange={settings.setNightMode}
-              />
-            </SettingRow>
-            <SettingRow label="Desktop icons">
-              <Toggle
-                checked={settings.showDesktopIcons}
-                onChange={settings.setShowDesktopIcons}
-              />
-            </SettingRow>
-            <SettingRow label="Dock app labels">
-              <Toggle
-                checked={settings.showDockLabels}
-                onChange={settings.setShowDockLabels}
-              />
-            </SettingRow>
-            <SettingRow label="Reduce motion">
-              <Toggle
-                checked={settings.reduceMotion}
-                onChange={settings.setReduceMotion}
-              />
-            </SettingRow>
-          </PanelContent>
+          <MacPage title="Appearance">
+            <MacSettingsGroup>
+              <MacSettingsRow label="Accent color" hint="Highlights and focus rings">
+                <MacColorPicker
+                  value={settings.accentColor}
+                  onChange={settings.setAccentColor}
+                />
+              </MacSettingsRow>
+              <MacSettingsRow label="Wallpaper">
+                <MacSelect
+                  value={settings.wallpaper}
+                  onChange={(v) => settings.setWallpaper(v as WallpaperStyle)}
+                >
+                  <option value="aurora">Aurora</option>
+                  <option value="mountains">Mountains</option>
+                  <option value="gradient">Gradient</option>
+                  <option value="solid">Solid</option>
+                </MacSelect>
+              </MacSettingsRow>
+              <MacSettingsRow label="Night mode" hint="Darker menu bar and dock">
+                <MacToggle
+                  checked={settings.nightMode}
+                  onChange={settings.setNightMode}
+                />
+              </MacSettingsRow>
+              <MacSettingsRow label="Desktop icons">
+                <MacToggle
+                  checked={settings.showDesktopIcons}
+                  onChange={settings.setShowDesktopIcons}
+                />
+              </MacSettingsRow>
+              <MacSettingsRow label="Dock app labels">
+                <MacToggle
+                  checked={settings.showDockLabels}
+                  onChange={settings.setShowDockLabels}
+                />
+              </MacSettingsRow>
+              <MacSettingsRow label="Reduce motion">
+                <MacToggle
+                  checked={settings.reduceMotion}
+                  onChange={settings.setReduceMotion}
+                />
+              </MacSettingsRow>
+            </MacSettingsGroup>
+          </MacPage>
         )}
 
         {cat === 'display' && (
-          <PanelContent title="Display">
-            <SettingRow label="UI scale" hint="Density of controls and text">
-              <select
-                value={settings.uiScale}
-                onChange={(e) =>
-                  settings.setUiScale(e.target.value as UiScale)
-                }
-                className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs"
-              >
-                <option value="compact">Compact</option>
-                <option value="comfortable">Comfortable</option>
-                <option value="large">Large</option>
-              </select>
-            </SettingRow>
-            <SettingRow label="Clock format">
-              <select
-                value={settings.timeFormat}
-                onChange={(e) =>
-                  settings.setTimeFormat(e.target.value as '12h' | '24h')
-                }
-                className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs"
-              >
-                <option value="24h">24-hour</option>
-                <option value="12h">12-hour</option>
-              </select>
-            </SettingRow>
-            <SettingRow label="Language">
-              <select
-                value={settings.language}
-                onChange={(e) => settings.setLanguage(e.target.value)}
-                className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs"
-              >
-                <option value="en">English</option>
-                <option value="es">Español</option>
-              </select>
-            </SettingRow>
-          </PanelContent>
+          <MacPage title="Display">
+            <MacSettingsGroup>
+              <MacSettingsRow label="UI scale">
+                <MacSelect
+                  value={settings.uiScale}
+                  onChange={(v) => settings.setUiScale(v as UiScale)}
+                >
+                  <option value="compact">Compact</option>
+                  <option value="comfortable">Default</option>
+                  <option value="large">Large</option>
+                </MacSelect>
+              </MacSettingsRow>
+              <MacSettingsRow label="Clock format">
+                <MacSelect
+                  value={settings.timeFormat}
+                  onChange={(v) =>
+                    settings.setTimeFormat(v as '12h' | '24h')
+                  }
+                >
+                  <option value="24h">24-hour</option>
+                  <option value="12h">12-hour</option>
+                </MacSelect>
+              </MacSettingsRow>
+              <MacSettingsRow label="Language">
+                <MacSelect
+                  value={settings.language}
+                  onChange={settings.setLanguage}
+                >
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                </MacSelect>
+              </MacSettingsRow>
+            </MacSettingsGroup>
+          </MacPage>
         )}
 
         {cat === 'system' && (
-          <PanelContent title="System">
-            <div className="mb-2">
-              <SectionTitle>CPU scheduler (simulator)</SectionTitle>
-            </div>
-            <SettingRow label="Default algorithm">
-              <select
-                value={settings.schedulerAlgorithm}
-                onChange={(e) => {
-                  const v = e.target.value as SchedulerAlgorithm;
-                  settings.setSchedulerAlgorithm(v);
-                  setAlgorithm(v);
-                }}
-                className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs"
-              >
-                <option value="RR">Round Robin</option>
-                <option value="FIFO">FIFO</option>
-                <option value="PRIORITY">Priority</option>
-              </select>
-            </SettingRow>
-            <SettingRow label={`Time quantum: ${settings.quantumMs} ms`}>
-              <input
-                type="range"
-                min={50}
-                max={500}
-                step={50}
-                value={settings.quantumMs}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  settings.setQuantumMs(v);
-                  setQuantum(v);
-                }}
-                className="w-40"
-              />
-            </SettingRow>
-            <button
-              type="button"
-              onClick={() => settings.resetAll()}
-              className="mt-4 rounded-lg border border-white/10 px-4 py-2 text-xs text-slate-300 hover:bg-white/5"
-            >
-              Reset settings to defaults
-            </button>
-          </PanelContent>
+          <MacPage title="System">
+            <SectionTitle>CPU scheduler (simulation)</SectionTitle>
+            <MacSettingsGroup>
+              <MacSettingsRow label="Algorithm">
+                <MacSelect
+                  value={settings.schedulerAlgorithm}
+                  onChange={(v) => {
+                    const algo = v as SchedulerAlgorithm;
+                    settings.setSchedulerAlgorithm(algo);
+                    setAlgorithm(algo);
+                  }}
+                >
+                  <option value="RR">Round Robin</option>
+                  <option value="FIFO">FIFO</option>
+                  <option value="PRIORITY">Priority</option>
+                </MacSelect>
+              </MacSettingsRow>
+              <MacSettingsRow label={`Time quantum — ${settings.quantumMs} ms`}>
+                <MacRange
+                  min={50}
+                  max={500}
+                  step={50}
+                  value={settings.quantumMs}
+                  onChange={(v) => {
+                    settings.setQuantumMs(v);
+                    setQuantum(v);
+                  }}
+                />
+              </MacSettingsRow>
+            </MacSettingsGroup>
+            <MacButton onClick={() => settings.resetAll()}>
+              Reset all settings
+            </MacButton>
+          </MacPage>
         )}
 
         {cat === 'storage' && (
-          <PanelContent title="Storage">
-            <button
-              type="button"
-              onClick={() => scanStorage()}
-              className="mb-4 flex items-center gap-1 text-xs text-[var(--accent)] hover:underline"
-            >
-              <RefreshCw size={12} /> Rescan drives
-            </button>
+          <MacPage title="Storage">
+            <MacButton onClick={() => scanStorage()} className="mb-2">
+              <RefreshCw size={14} className="mr-1.5 inline" />
+              Rescan drives
+            </MacButton>
             {storageSnapshot ? (
               <div className="space-y-3">
-                <div className="rounded-xl border border-white/10 bg-black/30 p-3 text-xs">
-                  <p className="text-slate-300">
-                    Physical RAM: <strong>{storageSnapshot.physicalRamGB} GB</strong>
-                  </p>
-                  <p className="mt-1 text-slate-500">
-                    Swap: {storageSnapshot.swapUsedGB} / {storageSnapshot.swapTotalGB} GB used
-                  </p>
-                </div>
-                {storageSnapshot.drives.map((d) => (
-                  <div
-                    key={d.id}
-                    className="rounded-xl border border-white/10 bg-black/20 p-3"
-                  >
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-slate-200">
-                        {d.label}
-                        {d.isUSB && (
-                          <span className="ml-2 text-amber-400">USB</span>
-                        )}
-                      </span>
-                      <span className="text-slate-500">{d.filesystem}</span>
-                    </div>
-                    <p className="mt-1 font-mono text-[10px] text-slate-500">
-                      {d.mount} · {d.device}
+                <MacSettingsGroup>
+                  <div className="px-4 py-3 text-[13px] text-[var(--text-muted)]">
+                    <p>
+                      Physical RAM:{' '}
+                      <strong className="text-[var(--text-primary)]">
+                        {storageSnapshot.physicalRamGB} GB
+                      </strong>
                     </p>
-                    {d.totalGB > 0 && (
-                      <div className="mt-2">
-                        <ProgressBar percent={d.usedPercent} />
-                        <p className="mt-1 text-[10px] text-slate-500">
-                          {d.usedGB} GB used · {d.freeGB} GB free · {d.totalGB} GB total
-                        </p>
-                      </div>
-                    )}
+                    <p className="mt-1">
+                      Swap: {storageSnapshot.swapUsedGB} /{' '}
+                      {storageSnapshot.swapTotalGB} GB
+                    </p>
                   </div>
+                </MacSettingsGroup>
+                {storageSnapshot.drives.map((d) => (
+                  <MacSettingsGroup key={d.id}>
+                    <div className="px-4 py-3">
+                      <div className="flex justify-between text-[13px]">
+                        <span className="font-medium text-[var(--text-primary)]">
+                          {d.label}
+                          {d.isUSB && (
+                            <span className="ml-2 text-amber-400">USB</span>
+                          )}
+                        </span>
+                        <span className="text-[var(--text-muted)]">
+                          {d.filesystem}
+                        </span>
+                      </div>
+                      {d.totalGB > 0 && (
+                        <div className="mt-2">
+                          <ProgressBar percent={d.usedPercent} />
+                          <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+                            {d.usedGB} GB used · {d.freeGB} GB free
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </MacSettingsGroup>
                 ))}
               </div>
             ) : (
-              <p className="text-slate-500">Scanning storage…</p>
+              <p className="text-[13px] text-[var(--text-muted)]">Scanning…</p>
             )}
-            <div className="mt-6">
-              <button
-                type="button"
-                onClick={handleClearStorage}
-                className="block w-full rounded-lg border border-red-500/30 px-3 py-2 text-left text-xs text-red-400 hover:bg-red-500/10"
-              >
-                Clear all WebOS local data and reload
-              </button>
-            </div>
-          </PanelContent>
+            <MacButton variant="danger" onClick={handleClearStorage}>
+              Clear WebOS local data
+            </MacButton>
+          </MacPage>
         )}
 
         {cat === 'network' && (
-          <PanelContent title="Network">
-            <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-xs">
-              <p className="text-slate-200">
-                Connected: {netSnapshot?.activeSsid ?? 'Not connected'}
-              </p>
-              <p className="mt-1 text-slate-500">
-                Source: {netSnapshot?.source ?? '—'} ·{' '}
-                {netSnapshot?.networks.length ?? 0} networks
-              </p>
-              <button
-                type="button"
-                onClick={() => scanNet()}
-                className="mt-3 flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-slate-200 hover:bg-white/15"
-              >
-                <RefreshCw size={12} /> Rescan Wi-Fi
-              </button>
-              <p className="mt-3 text-[10px] text-slate-600">
-                Use the Wi-Fi icon in the menu bar to connect to a network.
-              </p>
-            </div>
-          </PanelContent>
+          <MacPage title="Network">
+            <MacSettingsGroup>
+              <div className="space-y-3 px-4 py-3 text-[13px]">
+                <p className="text-[var(--text-primary)]">
+                  Connected: {netSnapshot?.activeSsid ?? 'Not connected'}
+                </p>
+                <p className="text-[var(--text-muted)]">
+                  {netSnapshot?.networks.length ?? 0} networks · source{' '}
+                  {netSnapshot?.source ?? '—'}
+                </p>
+                <MacButton onClick={() => scanNet()}>Rescan Wi‑Fi</MacButton>
+                <p className="text-[11px] text-[var(--text-subtle)]">
+                  Use the Wi‑Fi menu in the menu bar to join a network.
+                </p>
+              </div>
+            </MacSettingsGroup>
+          </MacPage>
         )}
 
         {cat === 'notifications' && (
-          <PanelContent title="Notifications">
-            <p className="text-xs text-slate-500">
-              View history in the menu bar bell icon. Toasts appear bottom-right when enabled.
-            </p>
-            <SettingRow label="Enable toast notifications">
-              <Toggle
-                checked={settings.notificationsEnabled}
-                onChange={settings.setNotificationsEnabled}
-              />
-            </SettingRow>
-            <SettingRow
-              label={`System volume: ${volume}%`}
-              hint="Controls host audio via wpctl/pactl/amixer when available"
-            >
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={volume}
-                onChange={(e) => void applyVolume(Number(e.target.value))}
-                className="w-40"
-              />
-            </SettingRow>
-          </PanelContent>
+          <MacPage title="Notifications">
+            <MacSettingsGroup>
+              <MacSettingsRow label="Show toast notifications">
+                <MacToggle
+                  checked={settings.notificationsEnabled}
+                  onChange={settings.setNotificationsEnabled}
+                />
+              </MacSettingsRow>
+              <MacSettingsRow label={`System volume — ${volume}%`}>
+                <MacRange
+                  min={0}
+                  max={100}
+                  value={volume}
+                  onChange={(v) => void applyVolume(v)}
+                />
+              </MacSettingsRow>
+            </MacSettingsGroup>
+          </MacPage>
         )}
 
         {cat === 'privacy' && (
-          <PanelContent title="Privacy & security">
-            <p className="text-xs leading-relaxed text-slate-400">
-              WebOS runs locally on your machine. File Manager can read and copy files
-              only under your home directory, /media, /run/media, and /mnt. No data is sent
-              to external servers except when you browse the web in the Browser app.
+          <MacPage title="Privacy & Security">
+            <p className="px-1 text-[13px] leading-relaxed text-[var(--text-muted)]">
+              WebOS runs on your machine. File access is limited to your home
+              directory and removable mounts. Only the Browser app contacts the
+              internet.
             </p>
-            <SettingRow label="Clear browsing data" hint="Reloads the simulator">
-              <button
-                type="button"
-                onClick={handleClearStorage}
-                className="rounded-lg border border-white/10 px-3 py-1.5 text-xs hover:bg-white/5"
-              >
-                Clear local data
-              </button>
-            </SettingRow>
-          </PanelContent>
+            <MacSettingsGroup>
+              <MacSettingsRow label="Clear local data">
+                <MacButton variant="danger" onClick={handleClearStorage}>
+                  Clear & reload
+                </MacButton>
+              </MacSettingsRow>
+            </MacSettingsGroup>
+          </MacPage>
         )}
 
         {cat === 'power' && (
-          <PanelContent title="Power">
+          <MacPage title="Power">
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={restart}
-                className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm hover:bg-white/10"
-              >
-                Restart WebOS
-              </button>
-              <button
-                type="button"
-                onClick={shutdown}
-                className="rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-3 text-sm text-red-300 hover:bg-red-500/20"
-              >
+              <MacButton onClick={restart}>Restart WebOS</MacButton>
+              <MacButton variant="danger" onClick={shutdown}>
                 Shut down
-              </button>
+              </MacButton>
             </div>
-          </PanelContent>
+          </MacPage>
         )}
 
         {cat === 'about' && (
-          <PanelContent title="About WebOS">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-2xl font-bold text-white shadow-lg">
-                W
+          <MacPage title="About">
+            <MacSettingsGroup>
+              <div className="flex items-center gap-4 px-4 py-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-gradient-to-br from-[var(--accent)] to-violet-600 text-xl font-bold text-white shadow-lg">
+                  W
+                </div>
+                <div>
+                  <p className="text-[15px] font-semibold">WebOS Simulator</p>
+                  <p className="text-[12px] text-[var(--text-muted)]">
+                    Version {APP_VERSION}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-semibold text-white">WebOS Simulator</h2>
-                <p className="text-xs text-slate-500">Version {APP_VERSION} · Next.js 14</p>
+            </MacSettingsGroup>
+            <MacSettingsGroup>
+              <div className="space-y-2 px-4 py-3 text-[13px] text-[var(--text-muted)]">
+                <p className="flex items-center gap-2">
+                  <Globe size={14} /> Live host metrics
+                </p>
+                <p className="flex items-center gap-2">
+                  <HardDrive size={14} /> Real disks & USB
+                </p>
+                <p className="flex items-center gap-2">
+                  <Wifi size={14} /> Wi‑Fi via NetworkManager
+                </p>
               </div>
-            </div>
-            <ul className="mt-6 space-y-2 text-xs text-slate-400">
-              <li className="flex items-center gap-2">
-                <Globe size={14} /> Live host metrics via systeminformation
-              </li>
-              <li className="flex items-center gap-2">
-                <HardDrive size={14} /> Real disk and USB detection (lsblk, /media)
-              </li>
-              <li className="flex items-center gap-2">
-                <Wifi size={14} /> Wi-Fi scan via NetworkManager (nmcli)
-              </li>
-            </ul>
-          </PanelContent>
+            </MacSettingsGroup>
+          </MacPage>
         )}
-      </div>
+      </main>
 
       <ConfirmDialog
         open={confirm === 'clearStorage'}
@@ -440,20 +413,5 @@ export function Settings() {
         onConfirm={() => void runConfirmedAction()}
       />
     </AppShell>
-  );
-}
-
-function PanelContent({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="max-w-xl space-y-4">
-      <h2 className="text-lg font-semibold text-white">{title}</h2>
-      {children}
-    </div>
   );
 }

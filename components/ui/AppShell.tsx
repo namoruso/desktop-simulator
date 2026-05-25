@@ -11,9 +11,26 @@ export function AppShell({
   className?: string;
 }) {
   return (
-    <div className={clsx('relative flex h-full flex-col bg-[var(--app-bg)] text-sm', className)}>
+    <div
+      className={clsx(
+        'relative flex h-full min-h-0 flex-col bg-[var(--app-bg)] text-[13px] text-[var(--text-primary)]',
+        className
+      )}
+    >
       {children}
     </div>
+  );
+}
+
+export function AppToolbar({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={clsx('mac-toolbar', className)}>{children}</div>
   );
 }
 
@@ -37,10 +54,9 @@ export function ToolbarButton({
       disabled={disabled}
       onClick={onClick}
       className={clsx(
-        'rounded-lg p-2 transition disabled:opacity-30',
-        active
-          ? 'bg-[var(--accent)]/25 text-white'
-          : 'text-slate-400 hover:bg-white/10 hover:text-white'
+        'mac-icon-btn',
+        active && 'mac-icon-btn-active',
+        disabled && 'cursor-not-allowed opacity-30'
       )}
     >
       {children}

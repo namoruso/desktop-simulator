@@ -1,7 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Search, Globe, FolderOpen, Terminal, Settings, Activity, FileText, Calculator, Image, FileType } from 'lucide-react';
+import {
+  Search,
+  Globe,
+  FolderOpen,
+  Terminal,
+  Settings,
+  Activity,
+  FileText,
+  Calculator,
+  Image,
+  FileType,
+} from 'lucide-react';
 import { launchApp } from '@/lib/launchApp';
 import { APP_LABELS, SPOTLIGHT_APPS } from '@/lib/appIcons';
 import type { AppType } from '@/types/window.types';
@@ -40,9 +51,6 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         if (open) onClose();
-        else {
-          /* parent toggles */
-        }
       }
       if (e.key === 'Escape' && open) onClose();
     };
@@ -70,15 +78,15 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-start justify-center bg-black/50 pt-[18vh] backdrop-blur-sm"
+      className="fixed inset-0 z-[300] flex items-start justify-center bg-black/50 pt-[16vh] backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-[rgba(20,24,36,0.97)] shadow-2xl"
+        className="os-glass-popover w-full max-w-xl overflow-hidden rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
-          <Search size={20} className="text-slate-400" />
+        <div className="flex items-center gap-3 border-b border-[var(--separator)] px-4 py-3.5">
+          <Search size={20} className="text-[var(--text-muted)]" />
           <input
             ref={inputRef}
             value={query}
@@ -94,9 +102,9 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
               }
             }}
             placeholder="Search apps, files, or the web…"
-            className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+            className="os-focus-ring flex-1 rounded-lg bg-transparent text-[15px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
           />
-          <kbd className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-slate-500">
+          <kbd className="rounded-md border border-[var(--separator)] bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
             Esc
           </kbd>
         </div>
@@ -106,33 +114,27 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
             <li key={app}>
               <button
                 type="button"
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-white/5"
+                className="os-menu-item mx-2"
                 onClick={() => {
                   launchApp(app);
                   onClose();
                 }}
               >
-                <span className="text-indigo-400">{APP_ICONS_MAP[app]}</span>
-                <span className="text-slate-200">{APP_LABELS[app]}</span>
+                <span className="text-[var(--accent)]">{APP_ICONS_MAP[app]}</span>
+                <span>{APP_LABELS[app]}</span>
               </button>
             </li>
           ))}
           {query.trim() && (
             <li>
-              <button
-                type="button"
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-white/5"
-                onClick={runSearch}
-              >
-                <Globe size={18} className="text-sky-400" />
-                <span className="text-slate-200">
-                  Search web for &quot;{query}&quot;
-                </span>
+              <button type="button" className="os-menu-item mx-2" onClick={runSearch}>
+                <Globe size={18} className="text-[var(--accent)]" />
+                <span>Search web for &quot;{query}&quot;</span>
               </button>
             </li>
           )}
           {!apps.length && !query.trim() && (
-            <li className="px-4 py-6 text-center text-xs text-slate-500">
+            <li className="px-4 py-6 text-center text-[12px] text-[var(--text-muted)]">
               Type to open an app or search the internet
             </li>
           )}

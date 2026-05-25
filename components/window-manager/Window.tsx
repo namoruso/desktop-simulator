@@ -46,7 +46,7 @@ const PdfViewer = dynamic(
 
 function AppLoading() {
   return (
-    <div className="flex h-full min-h-[160px] items-center justify-center text-sm text-slate-500">
+    <div className="flex h-full min-h-[160px] items-center justify-center text-[13px] text-[var(--text-muted)]">
       Loading…
     </div>
   );
@@ -198,6 +198,7 @@ export function Window({ window: win, containerRef }: WindowProps) {
       <WindowTitleBar
         title={win.title}
         appType={win.appType}
+        focused={win.isFocused}
         onClose={() => closeWindow(win.id)}
         onMinimize={() => minimizeWindow(win.id)}
         onMaximize={() => maximizeWindow(win.id)}

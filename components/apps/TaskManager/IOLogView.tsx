@@ -29,7 +29,7 @@ export function IOLogView() {
   return (
     <div className="space-y-3 text-xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-slate-400">
+        <p className="text-[var(--text-muted)]">
           File, network, audio, and process events (server + browser IndexedDB).
         </p>
         <div className="flex gap-2">
@@ -44,9 +44,9 @@ export function IOLogView() {
         </div>
       </div>
 
-      <div className="max-h-[420px] overflow-auto rounded-lg border border-white/10">
-        <table className="w-full text-left">
-          <thead className="sticky top-0 bg-black/60 text-slate-500">
+      <div className="mac-table-wrap max-h-[420px] overflow-auto">
+        <table className="mac-table">
+          <thead className="sticky top-0 z-10 bg-[var(--app-bg-elevated)]">
             <tr>
               <th className="px-2 py-1.5">Time</th>
               <th className="px-2 py-1.5">Dir</th>
@@ -58,14 +58,14 @@ export function IOLogView() {
           <tbody>
             {merged.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-[var(--text-muted)]">
                   No I/O events yet. Use File Manager, Wi‑Fi, or volume controls.
                 </td>
               </tr>
             ) : (
               merged.map((log) => (
                 <tr key={log.id} className="border-t border-white/5">
-                  <td className="whitespace-nowrap px-2 py-1.5 font-mono text-[10px] text-slate-500">
+                  <td className="whitespace-nowrap px-2 py-1.5 font-mono text-[10px] text-[var(--text-muted)]">
                     {format(new Date(log.timestamp), 'HH:mm:ss')}
                   </td>
                   <td className="px-2 py-1.5">
@@ -75,11 +75,11 @@ export function IOLogView() {
                       <ArrowUpRight size={14} className="text-amber-400" />
                     )}
                   </td>
-                  <td className="px-2 py-1.5 text-slate-400">{log.source}</td>
-                  <td className="max-w-[280px] truncate px-2 py-1.5 text-slate-200">
+                  <td className="px-2 py-1.5 text-[var(--text-muted)]">{log.source}</td>
+                  <td className="max-w-[280px] truncate px-2 py-1.5 text-[var(--text-primary)]">
                     {log.summary}
                   </td>
-                  <td className="px-2 py-1.5 text-slate-500">
+                  <td className="px-2 py-1.5 text-[var(--text-muted)]">
                     {log.bytes != null ? log.bytes.toLocaleString() : '—'}
                   </td>
                 </tr>

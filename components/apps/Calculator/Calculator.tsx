@@ -82,12 +82,12 @@ export function Calculator() {
 
   return (
     <AppShell className="p-3">
-      <div className="mb-3 rounded-xl border border-white/10 bg-black/40 px-4 py-6 text-right">
+      <div className="mac-panel mb-3 px-4 py-6 text-right">
         <div className="truncate text-3xl font-light tabular-nums text-white">
           {display}
         </div>
         {op && (
-          <div className="mt-1 text-[10px] text-slate-500">
+          <div className="mt-1 text-[10px] text-[var(--text-muted)]">
             {prev} {op}
           </div>
         )}
@@ -105,7 +105,7 @@ export function Calculator() {
                 ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
                 : label === 'C'
                   ? 'bg-red-500/20 text-red-300'
-                  : 'bg-white/10 text-slate-200'
+                  : 'bg-white/10 text-[var(--text-primary)]'
             }`}
           >
             {label}

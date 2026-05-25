@@ -80,17 +80,17 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
   const polling = connectionStatus === 'polling';
 
   return (
-    <header className="menubar-glass relative z-50 flex h-9 shrink-0 items-center justify-between border-b border-white/[0.08] px-3 text-[11px] shadow-sm">
-      <div className="flex items-center gap-4">
+    <header className="menubar-glass relative z-50 flex h-7 shrink-0 items-center justify-between border-b border-[var(--separator)] px-3 text-[12px]">
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={onSpotlight}
-          className="flex items-center gap-2 rounded-md px-2 py-1 transition hover:bg-white/10"
+          className="os-interactive os-focus-ring flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-white/[0.08]"
         >
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-bold text-white shadow-lg shadow-indigo-500/30">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)] text-[10px] font-bold text-white shadow-sm ring-1 ring-white/15">
             W
           </div>
-          <span className="hidden font-semibold text-white sm:inline">
+          <span className="hidden font-semibold tracking-tight text-[var(--text-primary)] sm:inline">
             {osName}
           </span>
         </button>
@@ -101,11 +101,15 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
           <MenuBtn label="System" onClick={() => launchApp('settings')} />
         </nav>
 
-        <div className="hidden items-center gap-3 text-slate-400 lg:flex">
-          <Stat icon={<Activity size={12} className="text-emerald-400" />} label={`${cpu.toFixed(1)}%`} title="CPU" />
+        <div className="hidden items-center gap-2 lg:flex">
+          <Stat
+            icon={<Activity size={12} className="text-emerald-400" />}
+            label={`CPU ${cpu.toFixed(1)}%`}
+            title="CPU usage"
+          />
           <Stat
             icon={<HardDrive size={12} className="text-sky-400" />}
-            label={`${freePct}% free`}
+            label={`RAM ${freePct}%`}
             title={ramTitle}
           />
           {usbCount > 0 && (
@@ -115,7 +119,9 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
               title="Removable storage connected"
             />
           )}
-          <span className="text-slate-600">{formatUptime(uptimeSeconds)}</span>
+          <span className="os-metric-pill" title="Simulator uptime">
+            {formatUptime(uptimeSeconds)}
+          </span>
         </div>
       </div>
 
@@ -123,7 +129,7 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
         <button
           type="button"
           onClick={onSpotlight}
-          className="flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-slate-400 transition hover:bg-white/10 hover:text-white"
+          className="os-interactive os-focus-ring flex items-center gap-1.5 rounded-md border border-[var(--separator)] bg-white/[0.04] px-2 py-1 text-[var(--text-muted)] hover:bg-white/[0.08] hover:text-[var(--text-primary)]"
           title="Search (Ctrl+K)"
         >
           <Search size={12} />
@@ -139,10 +145,10 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
             type="button"
             onClick={() => setVolumeOpen((o) => !o)}
             className={clsx(
-              'flex items-center gap-1 rounded-md px-2 py-1 transition',
+              'os-interactive os-focus-ring flex items-center gap-1 rounded-lg px-2 py-1.5',
               volumeOpen
-                ? 'bg-white/15 text-white'
-                : 'text-slate-500 hover:bg-white/10 hover:text-white'
+                ? 'bg-white/15 text-white ring-1 ring-white/15'
+                : 'text-[var(--text-muted)] hover:bg-white/[0.08] hover:text-[var(--text-primary)]'
             )}
             title="System volume"
           >
@@ -150,15 +156,15 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
             {volume}%
           </button>
           {volumeOpen && (
-            <div className="absolute right-0 top-full z-[200] mt-2 w-44 rounded-xl border border-white/10 bg-[rgba(18,22,32,0.98)] p-3 shadow-2xl">
-              <p className="mb-2 text-[10px] text-slate-400">Host volume</p>
+            <div className="os-glass-popover absolute right-0 top-full z-[200] mt-2 w-44 rounded-xl p-3">
+              <p className="mb-2 text-[10px] text-[var(--text-muted)]">Host volume</p>
               <input
                 type="range"
                 min={0}
                 max={100}
                 value={volume}
                 onChange={(e) => void applyVolume(Number(e.target.value))}
-                className="w-full"
+                className="mac-range w-full"
               />
             </div>
           )}
@@ -177,7 +183,7 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
         <button
           type="button"
           onClick={restart}
-          className="rounded-md p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-white"
+          className="mac-icon-btn p-1.5"
           title="Restart"
         >
           <RefreshCw size={14} />
@@ -185,12 +191,12 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
         <button
           type="button"
           onClick={shutdown}
-          className="rounded-md p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-white"
+          className="mac-icon-btn p-1.5"
           title="Shutdown"
         >
           <Power size={14} />
         </button>
-        <span className="tabular-nums font-medium text-slate-200">
+        <span className="tabular-nums text-[12px] font-medium text-[var(--text-primary)]">
           {format(
             time,
             timeFormat === '12h' ? 'EEE d  h:mm a' : 'EEE d  HH:mm'
@@ -206,7 +212,7 @@ function MenuBtn({ label, onClick }: { label: string; onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="rounded-md px-2.5 py-1 text-slate-400 transition hover:bg-white/10 hover:text-slate-100"
+      className="os-interactive os-focus-ring rounded-md px-2 py-0.5 text-[var(--text-muted)] hover:bg-white/[0.06] hover:text-[var(--text-primary)]"
     >
       {label}
     </button>
@@ -223,7 +229,7 @@ function Stat({
   title: string;
 }) {
   return (
-    <span className="flex items-center gap-1" title={title}>
+    <span className="os-metric-pill" title={title}>
       {icon}
       {label}
     </span>

@@ -25,7 +25,7 @@ function DialogFrame({
 
   return (
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-md"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}
@@ -34,18 +34,19 @@ function DialogFrame({
         role="dialog"
         aria-modal="true"
         aria-labelledby="os-dialog-title"
-        className="w-full max-w-sm rounded-xl border border-white/15 bg-[rgba(22,26,38,0.98)] shadow-2xl shadow-black/50"
+        className="os-glass-popover w-full max-w-sm overflow-hidden rounded-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-white/10 px-4 py-3">
-          <h2 id="os-dialog-title" className="text-sm font-semibold text-slate-100">
+        <div className="mac-dialog-header">
+          <h2
+            id="os-dialog-title"
+            className="text-[13px] font-semibold text-[var(--text-primary)]"
+          >
             {title}
           </h2>
         </div>
-        <div className="px-4 pb-4">{children}</div>
-        <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3">
-          {footer}
-        </div>
+        <div className="px-4 pb-4 pt-3">{children}</div>
+        <div className="mac-dialog-footer">{footer}</div>
       </div>
     </div>
   );
@@ -119,7 +120,9 @@ export function PromptDialog({
       }
     >
       {label && (
-        <label className="mb-2 block text-xs text-slate-400">{label}</label>
+        <label className="mb-2 block text-[11px] text-[var(--text-muted)]">
+          {label}
+        </label>
       )}
       <input
         ref={inputRef}
@@ -137,13 +140,11 @@ export function PromptDialog({
           }
         }}
         className={clsx(
-          'w-full rounded-lg border bg-black/30 px-3 py-2 text-sm text-slate-100 outline-none',
-          error
-            ? 'border-red-500/50 focus:border-red-400'
-            : 'border-white/15 focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/40'
+          'mac-field',
+          error && 'ring-2 ring-red-500/40'
         )}
       />
-      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-2 text-[11px] text-red-400">{error}</p>}
     </DialogFrame>
   );
 }
@@ -185,7 +186,9 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-sm leading-relaxed text-slate-300">{message}</p>
+      <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">
+        {message}
+      </p>
     </DialogFrame>
   );
 }
@@ -231,7 +234,9 @@ export function PasswordDialog({
         </>
       }
     >
-      <label className="mb-2 block text-xs text-slate-400">Network password</label>
+      <label className="mb-2 block text-[11px] text-[var(--text-muted)]">
+        Network password
+      </label>
       <input
         ref={inputRef}
         type="password"
@@ -244,7 +249,7 @@ export function PasswordDialog({
             submit();
           }
         }}
-        className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-slate-100 outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/40"
+        className="mac-field"
         autoComplete="off"
       />
     </DialogFrame>
@@ -272,19 +277,17 @@ export function RecentFilesDialog({
       onCancel={onCancel}
       footer={
         <>
-          {files.length > 0 && (
-            <Btn onClick={onClear}>Clear list</Btn>
-          )}
+          {files.length > 0 && <Btn onClick={onClear}>Clear list</Btn>}
           <Btn onClick={onCancel}>Close</Btn>
         </>
       }
     >
       {files.length === 0 ? (
-        <p className="text-sm text-slate-400">
+        <p className="text-[13px] text-[var(--text-muted)]">
           No recent files. Open a text file from File Manager.
         </p>
       ) : (
-        <ul className="max-h-56 space-y-1 overflow-auto">
+        <ul className="max-h-56 space-y-0.5 overflow-auto">
           {files.map((path) => {
             const name = path.split(/[/\\]/).pop() ?? path;
             return (
@@ -292,10 +295,10 @@ export function RecentFilesDialog({
                 <button
                   type="button"
                   onClick={() => onSelect(path)}
-                  className="w-full rounded-lg px-2 py-2 text-left transition hover:bg-white/10"
+                  className="mac-list-item flex-col items-start py-2"
                 >
-                  <span className="block truncate text-sm text-slate-200">{name}</span>
-                  <span className="block truncate font-mono text-[10px] text-slate-500">
+                  <span className="block truncate text-[13px]">{name}</span>
+                  <span className="block truncate font-mono text-[10px] text-[var(--text-subtle)]">
                     {path}
                   </span>
                 </button>

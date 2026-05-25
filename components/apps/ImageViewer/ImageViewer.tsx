@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ZoomIn, ZoomOut, RotateCcw, ExternalLink } from 'lucide-react';
-import { AppShell, ToolbarButton } from '@/components/ui/AppShell';
+import { AppShell, AppToolbar, ToolbarButton } from '@/components/ui/AppShell';
 import { useImageViewerStore } from '@/store/useImageViewerStore';
 import { IMAGE_OPEN_EVENT } from '@/lib/mediaBridge';
 import { getRawFileUrl } from '@/lib/fileTypes';
@@ -36,7 +36,7 @@ export function ImageViewer() {
 
   return (
     <AppShell>
-      <div className="flex items-center gap-1 border-b border-white/10 bg-black/25 px-2 py-2">
+      <AppToolbar>
         <ToolbarButton
           title="Zoom out"
           disabled={zoom <= 25}
@@ -44,7 +44,7 @@ export function ImageViewer() {
         >
           <ZoomOut size={16} />
         </ToolbarButton>
-        <span className="min-w-[3rem] text-center text-[10px] text-slate-400">
+        <span className="min-w-[3rem] text-center text-[10px] text-[var(--text-muted)]">
           {zoom}%
         </span>
         <ToolbarButton
@@ -65,14 +65,14 @@ export function ImageViewer() {
             <ExternalLink size={16} />
           </ToolbarButton>
         )}
-        <span className="ml-auto truncate font-mono text-[10px] text-slate-500">
+        <span className="ml-auto truncate font-mono text-[10px] text-[var(--text-muted)]">
           {filePath ?? 'Open an image from File Manager'}
         </span>
-      </div>
+      </AppToolbar>
 
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-[rgba(4,6,12,0.85)] p-4">
+      <div className="mac-canvas flex min-h-0 flex-1 items-center justify-center overflow-auto p-4">
         {!filePath ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[var(--text-muted)]">
             Double-click an image in File Manager to open it here.
           </p>
         ) : error ? (

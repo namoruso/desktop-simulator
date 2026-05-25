@@ -62,8 +62,10 @@ export function NetworkMenu() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={clsx(
-          'flex items-center gap-1.5 rounded-md px-2 py-1 transition',
-          open ? 'bg-white/15 text-white' : 'text-slate-400 hover:bg-white/10 hover:text-white'
+          'os-interactive os-focus-ring flex items-center gap-1.5 rounded-md px-2 py-1',
+          open
+            ? 'bg-white/15 text-[var(--text-primary)]'
+            : 'text-[var(--text-muted)] hover:bg-white/[0.08] hover:text-[var(--text-primary)]'
         )}
         title="Wi-Fi networks"
       >
@@ -74,15 +76,17 @@ export function NetworkMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-[200] mt-2 w-80 overflow-hidden rounded-xl border border-white/10 bg-[rgba(18,22,32,0.98)] shadow-2xl backdrop-blur-xl">
-          <div className="border-b border-white/10 px-4 py-3">
+        <div className="os-glass-popover absolute right-0 top-full z-[200] mt-2 w-80 overflow-hidden rounded-xl">
+          <div className="border-b border-[var(--separator)] px-4 py-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white">Wi-Fi</h3>
+              <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">
+                Wi-Fi
+              </h3>
               <button
                 type="button"
                 onClick={() => scan()}
                 disabled={isScanning}
-                className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="mac-icon-btn"
               >
                 <RefreshCw size={14} className={isScanning ? 'animate-spin' : ''} />
               </button>
@@ -92,7 +96,7 @@ export function NetworkMenu() {
                 <Cable size={10} /> Ethernet connected
               </p>
             )}
-            <p className="mt-1 text-[10px] text-slate-500">
+            <p className="mt-1 text-[10px] text-[var(--text-subtle)]">
               {snapshot?.source === 'nmcli'
                 ? 'Live scan via NetworkManager (nmcli)'
                 : 'Simulated networks (install nmcli for real scan)'}
@@ -101,7 +105,7 @@ export function NetworkMenu() {
 
           <ul className="max-h-64 overflow-auto py-1">
             {isScanning && !snapshot?.networks.length ? (
-              <li className="flex items-center justify-center gap-2 py-6 text-xs text-slate-500">
+              <li className="flex items-center justify-center gap-2 py-6 text-[12px] text-[var(--text-muted)]">
                 <Loader2 size={16} className="animate-spin" /> Scanning…
               </li>
             ) : (
@@ -122,10 +126,10 @@ export function NetworkMenu() {
                         void connectTo(net.ssid);
                       }}
                       className={clsx(
-                        'flex w-full items-center gap-3 px-4 py-2.5 text-left text-xs transition',
-                        isActive ? 'bg-indigo-500/15' : 'hover:bg-white/5',
+                        'mac-list-item rounded-none px-4',
+                        isActive && 'mac-list-item-active',
                         isConnecting && 'opacity-50',
-                        passwordFor === net.ssid && 'bg-indigo-500/10 ring-1 ring-indigo-400/30'
+                        passwordFor === net.ssid && 'ring-1 ring-[var(--accent)]/40'
                       )}
                     >
                       <Wifi
@@ -135,19 +139,17 @@ export function NetworkMenu() {
                             ? 'text-emerald-400'
                             : net.signal > 40
                               ? 'text-amber-400'
-                              : 'text-slate-500'
+                              : 'text-[var(--text-subtle)]'
                         )}
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="truncate font-medium text-slate-200">
-                            {net.ssid}
-                          </span>
+                          <span className="truncate font-medium">{net.ssid}</span>
                           {isActive && (
-                            <Check size={12} className="shrink-0 text-indigo-400" />
+                            <Check size={12} className="shrink-0 text-[var(--accent)]" />
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-[10px] text-[var(--text-muted)]">
                           {net.security} · {net.signal}%
                         </span>
                       </div>
@@ -159,7 +161,7 @@ export function NetworkMenu() {
                               'w-1 rounded-sm',
                               net.signal >= bar * 25
                                 ? 'bg-emerald-500'
-                                : 'bg-slate-700'
+                                : 'bg-white/15'
                             )}
                             style={{ height: `${bar * 3 + 2}px` }}
                           />
@@ -173,8 +175,8 @@ export function NetworkMenu() {
           </ul>
 
           {passwordFor && (
-            <div className="border-t border-white/10 bg-indigo-500/10 px-4 py-3">
-              <p className="mb-2 text-xs font-medium text-indigo-200">
+            <div className="border-t border-[var(--separator)] bg-[var(--accent)]/10 px-4 py-3">
+              <p className="mb-2 text-[12px] font-medium text-[var(--text-primary)]">
                 Password for “{passwordFor}”
               </p>
               <input
@@ -192,7 +194,7 @@ export function NetworkMenu() {
                     setPassword('');
                   }
                 }}
-                className="mb-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-slate-100 outline-none focus:border-[var(--accent)]"
+                className="mac-field mb-2"
               />
               <div className="flex justify-end gap-2">
                 <Btn
@@ -215,7 +217,7 @@ export function NetworkMenu() {
           )}
 
           {lastError && !passwordFor && (
-            <p className="border-t border-white/10 px-4 py-2 text-[10px] text-red-400">
+            <p className="border-t border-[var(--separator)] px-4 py-2 text-[10px] text-red-400">
               {lastError}
             </p>
           )}

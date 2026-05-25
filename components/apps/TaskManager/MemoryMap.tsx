@@ -35,8 +35,8 @@ export function MemoryMapView() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-white/10 bg-black/25 p-3 text-xs leading-relaxed text-slate-400">
-        <p className="font-medium text-slate-200">What is this grid?</p>
+      <div className="rounded-lg border border-[var(--separator)] bg-[var(--app-bg-elevated)] p-3 text-xs leading-relaxed text-[var(--text-muted)]">
+        <p className="font-medium text-[var(--text-primary)]">What is this grid?</p>
         <p className="mt-1">
           Each square = 1% of your RAM ({Math.round(memoryMap.totalMB / 100)} MB).
           Colors show how memory is distributed: real apps, WebOS overhead, cache,
@@ -57,7 +57,7 @@ export function MemoryMapView() {
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-muted)]">
         <span>
           Display: {memoryMap.displayUsedMB} / {memoryMap.totalMB} MB (
           {memoryMap.displayUsedPercent}% apps + simulator)
@@ -74,13 +74,13 @@ export function MemoryMapView() {
       </div>
 
       {hover && (
-        <p className="rounded bg-white/5 px-2 py-1 text-center text-[11px] text-indigo-200">
+        <p className="rounded bg-white/5 px-2 py-1 text-center text-[11px] text-[var(--accent)]">
           {hover}
         </p>
       )}
 
       <div
-        className="grid gap-1 rounded-lg border border-white/10 bg-black/20 p-2"
+        className="grid gap-1 rounded-lg border border-[var(--separator)] bg-[rgba(0,0,0,0.15)] p-2"
         style={{ gridTemplateColumns: 'repeat(10, 1fr)' }}
       >
         {memoryMap.blocks.map((block) => {
@@ -107,18 +107,18 @@ export function MemoryMapView() {
           return (
             <div
               key={type}
-              className="flex items-start gap-2 rounded-lg border border-white/5 bg-black/20 px-2 py-1.5"
+              className="flex items-start gap-2 rounded-lg border border-white/5 bg-[rgba(0,0,0,0.15)] px-2 py-1.5"
             >
               <span
                 className="mt-0.5 h-4 w-4 shrink-0 rounded"
                 style={{ backgroundColor: BLOCK_COLORS[type] }}
               />
               <div>
-                <span className="text-[11px] font-medium text-slate-200">
+                <span className="text-[11px] font-medium text-[var(--text-primary)]">
                   {label}{' '}
-                  <span className="text-slate-500">({n} blocks = {n}%)</span>
+                  <span className="text-[var(--text-muted)]">({n} blocks = {n}%)</span>
                 </span>
-                <p className="text-[10px] text-slate-500">{hint}</p>
+                <p className="text-[10px] text-[var(--text-muted)]">{hint}</p>
               </div>
             </div>
           );
@@ -138,10 +138,10 @@ function Stat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-black/20 px-2 py-2">
-      <div className="text-[10px] text-slate-500">{label}</div>
-      <div className="font-medium text-slate-200">{value}</div>
-      {hint && <div className="text-[9px] text-slate-600">{hint}</div>}
+    <div className="rounded-lg border border-[var(--separator)] bg-[rgba(0,0,0,0.15)] px-2 py-2">
+      <div className="text-[10px] text-[var(--text-muted)]">{label}</div>
+      <div className="font-medium text-[var(--text-primary)]">{value}</div>
+      {hint && <div className="text-[9px] text-[var(--text-subtle)]">{hint}</div>}
     </div>
   );
 }

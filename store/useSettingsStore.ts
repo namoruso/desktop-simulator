@@ -37,7 +37,7 @@ interface SettingsStore {
 }
 
 const defaults = {
-  accentColor: '#6366f1',
+  accentColor: '#0a84ff',
   wallpaper: 'aurora' as WallpaperStyle,
   uiScale: 'comfortable' as UiScale,
   timeFormat: '24h' as TimeFormat,

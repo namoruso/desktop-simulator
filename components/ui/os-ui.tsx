@@ -3,34 +3,18 @@
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
-export function Panel({
+/** macOS System Settings — grouped list container */
+export function MacSettingsGroup({
   children,
   className,
 }: {
   children: ReactNode;
   className?: string;
 }) {
-  return (
-    <div
-      className={clsx(
-        'rounded-xl border border-white/10 bg-black/25 shadow-inner',
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
+  return <div className={clsx('mac-settings-group', className)}>{children}</div>;
 }
 
-export function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-      {children}
-    </h3>
-  );
-}
-
-export function SettingRow({
+export function MacSettingsRow({
   label,
   hint,
   children,
@@ -40,17 +24,18 @@ export function SettingRow({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium text-slate-200">{label}</div>
-        {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
+    <div className="mac-settings-row">
+      <div className="min-w-0">
+        <div className="mac-settings-row-label">{label}</div>
+        {hint && <p className="mac-settings-row-hint">{hint}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
   );
 }
 
-export function Toggle({
+/** macOS-style switch (51×31) */
+export function MacToggle({
   checked,
   onChange,
 }: {
@@ -63,18 +48,145 @@ export function Toggle({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
+      className="mac-toggle"
+    >
+      <span className="mac-toggle-knob" />
+    </button>
+  );
+}
+
+export function MacSelect({
+  value,
+  onChange,
+  children,
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={clsx('mac-select', className)}
+    >
+      {children}
+    </select>
+  );
+}
+
+export function MacColorPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (hex: string) => void;
+}) {
+  return (
+    <label className="mac-color-swatch" title="Choose accent color">
+      <span
+        className="mac-color-swatch-preview"
+        style={{ backgroundColor: value }}
+        aria-hidden
+      />
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
+  );
+}
+
+export function MacRange({
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <input
+      type="range"
+      className="mac-range"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+    />
+  );
+}
+
+export function MacButton({
+  children,
+  onClick,
+  variant = 'default',
+  disabled,
+  title,
+  className,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  variant?: 'default' | 'primary' | 'danger';
+  disabled?: boolean;
+  title?: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
       className={clsx(
-        'relative h-7 w-12 rounded-full transition-colors',
-        checked ? 'bg-[var(--accent)]' : 'bg-slate-600'
+        'mac-btn',
+        variant === 'primary' && 'mac-btn-primary',
+        variant === 'danger' && 'mac-btn-danger',
+        variant === 'default' && 'mac-btn-default',
+        disabled && 'cursor-not-allowed opacity-40',
+        className
       )}
     >
-      <span
-        className={clsx(
-          'absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform',
-          checked ? 'translate-x-5' : 'translate-x-0.5'
-        )}
-      />
+      {children}
     </button>
+  );
+}
+
+export function MacPage({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="mx-auto w-full max-w-[640px] space-y-5 pb-8">
+      <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+        {title}
+      </h1>
+      <div className="space-y-5">{children}</div>
+    </div>
+  );
+}
+
+/* Legacy aliases — map to mac components */
+export const Toggle = MacToggle;
+export const SettingRow = MacSettingsRow;
+
+export function SectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+      {children}
+    </h3>
   );
 }
 
@@ -89,12 +201,12 @@ export function ProgressBar({
   return (
     <div
       className={clsx(
-        'h-2 overflow-hidden rounded-full bg-black/40',
+        'h-1.5 overflow-hidden rounded-full bg-white/10',
         className
       )}
     >
       <div
-        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500"
+        className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
         style={{ width: `${p}%` }}
       />
     </div>
@@ -107,12 +219,111 @@ export function Btn({
   variant = 'default',
   disabled,
   title,
+  className,
 }: {
   children: ReactNode;
   onClick?: () => void;
-  variant?: 'default' | 'primary' | 'danger';
+  variant?: 'default' | 'primary' | 'danger' | 'cta';
   disabled?: boolean;
   title?: string;
+  className?: string;
+}) {
+  const macVariant =
+    variant === 'primary' || variant === 'cta' ? 'primary' : variant === 'danger' ? 'danger' : 'default';
+  return (
+    <MacButton
+      onClick={onClick}
+      variant={macVariant}
+      disabled={disabled}
+      className={className}
+      title={title}
+    >
+      {children}
+    </MacButton>
+  );
+}
+
+export function Panel({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={clsx('mac-settings-group p-4', className)}>{children}</div>
+  );
+}
+
+export function MacInput({
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+  className,
+  disabled,
+  onKeyDown,
+  autoComplete,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  autoComplete?: string;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      disabled={disabled}
+      placeholder={placeholder}
+      autoComplete={autoComplete}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={onKeyDown}
+      className={clsx('mac-field', className)}
+    />
+  );
+}
+
+export function MacSearchField({
+  value,
+  onChange,
+  placeholder = 'Search',
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <input
+      type="search"
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className={clsx('mac-search', className)}
+    />
+  );
+}
+
+export function MacIconButton({
+  children,
+  onClick,
+  title,
+  active,
+  disabled,
+  className,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  title: string;
+  active?: boolean;
+  disabled?: boolean;
+  className?: string;
 }) {
   return (
     <button
@@ -121,13 +332,35 @@ export function Btn({
       disabled={disabled}
       onClick={onClick}
       className={clsx(
-        'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition disabled:opacity-40',
-        variant === 'primary' &&
-          'bg-[var(--accent)] text-white hover:brightness-110',
-        variant === 'danger' &&
-          'border border-red-500/40 text-red-400 hover:bg-red-500/10',
-        variant === 'default' &&
-          'border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+        'mac-icon-btn',
+        active && 'mac-icon-btn-active',
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function MacListItem({
+  children,
+  onClick,
+  active,
+  className,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  active?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={clsx(
+        'mac-list-item',
+        active && 'mac-list-item-active',
+        className
       )}
     >
       {children}

@@ -19,12 +19,12 @@ export function DesktopIcons() {
             type="button"
             onDoubleClick={() => launchApp(appType, true)}
             onClick={() => launchApp(appType)}
-            className="pointer-events-auto group flex w-28 flex-col items-center gap-2 rounded-xl p-3 transition hover:bg-white/5"
+            className="os-interactive os-focus-ring pointer-events-auto group flex w-[5.5rem] flex-col items-center gap-1.5 rounded-lg p-2 hover:bg-white/[0.06] active:scale-[0.98]"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-white/15 to-white/5 shadow-lg ring-1 ring-white/10 transition group-hover:scale-105 group-hover:ring-white/20">
-              <AppIcon appType={appType} size={28} className="text-indigo-200" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-white/10 bg-gradient-to-br from-white/18 to-white/[0.04] shadow-md shadow-black/25 transition duration-200 group-hover:scale-[1.04] group-hover:border-white/18">
+              <AppIcon appType={appType} size={24} className="text-[var(--text-primary)]" />
             </div>
-            <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight text-slate-200 drop-shadow">
+            <span className="line-clamp-2 w-full text-center text-[10px] font-medium leading-tight text-[var(--text-primary)] drop-shadow-sm">
               {APP_LABELS[appType]}
             </span>
           </button>
