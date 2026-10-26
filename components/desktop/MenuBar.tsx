@@ -10,6 +10,9 @@ import {
   Search,
   Usb,
   Volume2,
+  Battery,
+  BatteryCharging,
+  Plug,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useOSStore } from '@/store/useOSStore';
@@ -36,6 +39,7 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
   const cpuHistory = useProcessStore((s) => s.cpuHistory);
   const m = useMemoryStore((s) => s.memoryMap);
   const connectionStatus = useSystemStore((s) => s.connectionStatus);
+  const battery = useSystemStore((s) => s.battery);
   const usbCount = useStorageStore(
     (s) => s.snapshot?.drives.filter((d) => d.isUSB).length ?? 0
   );
@@ -139,6 +143,28 @@ export function MenuBar({ onSpotlight }: MenuBarProps) {
         <NotificationCenter />
 
         <NetworkMenu />
+
+        {battery?.hasBattery && (
+          <span
+            className="os-metric-pill hidden sm:inline-flex"
+            title={
+              battery.isCharging
+                ? `Charging · ${battery.percent}%`
+                : battery.timeRemaining != null && battery.timeRemaining > 0
+                  ? `${battery.percent}% · ~${Math.round(battery.timeRemaining / 60)} min left`
+                  : `${battery.percent}% battery`
+            }
+          >
+            {battery.isCharging ? (
+              <BatteryCharging size={12} className="text-emerald-400" />
+            ) : battery.acConnected && battery.percent >= 95 ? (
+              <Plug size={12} className="text-emerald-400" />
+            ) : (
+              <Battery size={12} className="text-[var(--text-muted)]" />
+            )}
+            {battery.percent}%
+          </span>
+        )}
 
         <div ref={volumeRef} className="relative hidden sm:block">
           <button

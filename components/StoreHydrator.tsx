@@ -6,6 +6,7 @@ import { useWindowStore } from '@/store/useWindowStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useNetworkStore } from '@/store/useNetworkStore';
 import { useEditorStore } from '@/store/useEditorStore';
+import { useTodoStore } from '@/store/useTodoStore';
 
 const HYDRATE_TIMEOUT_MS = 8000;
 
@@ -29,6 +30,7 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
           useSettingsStore.persist.rehydrate(),
           useNetworkStore.persist.rehydrate(),
           useEditorStore.persist.rehydrate(),
+          useTodoStore.persist.rehydrate(),
         ]);
       } finally {
         clearTimeout(timeout);

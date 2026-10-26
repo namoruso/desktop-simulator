@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateId } from '@/lib/uuid';
+import { centeredWindowLayout } from '@/lib/windowLayout';
 import type { AppType, WindowInstance } from '@/types/window.types';
 
 const APP_TITLES: Record<AppType, string> = {
@@ -13,6 +14,7 @@ const APP_TITLES: Record<AppType, string> = {
   'image-viewer': 'Image Viewer',
   'pdf-viewer': 'PDF Viewer',
   settings: 'Settings',
+  todo: 'Todo',
 };
 
 const DEFAULT_SIZES: Record<AppType, { width: number; height: number }> = {
@@ -25,17 +27,8 @@ const DEFAULT_SIZES: Record<AppType, { width: number; height: number }> = {
   'image-viewer': { width: 760, height: 580 },
   'pdf-viewer': { width: 900, height: 640 },
   settings: { width: 780, height: 520 },
+  todo: { width: 720, height: 520 },
 };
-
-let windowOffset = 0;
-
-function nextPosition() {
-  windowOffset = (windowOffset + 28) % 200;
-  return {
-    x: 80 + windowOffset,
-    y: 48 + windowOffset,
-  };
-}
 
 interface WindowStore {
   windows: WindowInstance[];
@@ -60,6 +53,8 @@ export const useWindowStore = create<WindowStore>()(
       openWindow: (appType, pid = Date.now() % 100000) => {
         const id = generateId();
         const z = get().maxZIndex + 1;
+        const defaultSize = DEFAULT_SIZES[appType];
+        const { position, size } = centeredWindowLayout(defaultSize);
         const newWindow: WindowInstance = {
           id,
           appType,
@@ -68,8 +63,8 @@ export const useWindowStore = create<WindowStore>()(
           isMaximized: false,
           isFocused: true,
           zIndex: z,
-          position: nextPosition(),
-          size: DEFAULT_SIZES[appType],
+          position,
+          size,
           pid,
         };
         set((s) => ({

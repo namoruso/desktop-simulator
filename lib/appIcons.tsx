@@ -6,6 +6,7 @@ import {
   FolderOpen,
   Globe,
   Image,
+  ListTodo,
   Settings,
   Terminal,
   type LucideIcon,
@@ -22,6 +23,7 @@ export const APP_ICONS: Record<AppType, LucideIcon> = {
   'image-viewer': Image,
   'pdf-viewer': FileType,
   settings: Settings,
+  todo: ListTodo,
 };
 
 export const APP_LABELS: Record<AppType, string> = {
@@ -34,6 +36,7 @@ export const APP_LABELS: Record<AppType, string> = {
   'image-viewer': 'Image Viewer',
   'pdf-viewer': 'PDF Viewer',
   settings: 'Settings',
+  todo: 'Todo',
 };
 
 export const DOCK_APPS: AppType[] = [
@@ -41,6 +44,7 @@ export const DOCK_APPS: AppType[] = [
   'task-manager',
   'terminal',
   'text-editor',
+  'todo',
   'image-viewer',
   'pdf-viewer',
   'calculator',
@@ -56,6 +60,7 @@ export const DESKTOP_APPS: AppType[] = [
   'task-manager',
   'terminal',
   'text-editor',
+  'todo',
   'image-viewer',
   'pdf-viewer',
   'calculator',

@@ -6,6 +6,10 @@ import clsx from 'clsx';
 import type { WindowInstance } from '@/types/window.types';
 import { useWindowStore } from '@/store/useWindowStore';
 import { WindowTitleBar } from './WindowTitleBar';
+import {
+  clampWindowPosition,
+  clampWindowSize,
+} from '@/lib/windowLayout';
 
 const TaskManager = dynamic(
   () => import('@/components/apps/TaskManager/TaskManager').then((m) => m.TaskManager),
@@ -43,6 +47,10 @@ const PdfViewer = dynamic(
   () => import('@/components/apps/PdfViewer/PdfViewer').then((m) => m.PdfViewer),
   { ssr: false, loading: () => <AppLoading /> }
 );
+const Todo = dynamic(
+  () => import('@/components/apps/Todo/Todo').then((m) => m.Todo),
+  { ssr: false, loading: () => <AppLoading /> }
+);
 
 function AppLoading() {
   return (
@@ -72,6 +80,8 @@ function AppContent({ appType }: { appType: WindowInstance['appType'] }) {
       return <PdfViewer />;
     case 'settings':
       return <Settings />;
+    case 'todo':
+      return <Todo />;
     default:
       return null;
   }
@@ -141,18 +151,25 @@ export function Window({ window: win, containerRef }: WindowProps) {
         const dy = e.clientY - dragStart.current.y;
         let nx = dragStart.current.wx + dx;
         let ny = dragStart.current.wy + dy;
-        nx = Math.max(0, Math.min(nx, container.clientWidth - 120));
-        ny = Math.max(0, Math.min(ny, container.clientHeight - 48));
-        updatePosition(win.id, { x: nx, y: ny });
+        const clamped = clampWindowPosition(
+          { x: nx, y: ny },
+          win.size,
+          { width: container.clientWidth, height: container.clientHeight }
+        );
+        updatePosition(win.id, clamped);
       }
 
       if (resizing.current) {
         const dw = e.clientX - resizeStart.current.x;
         const dh = e.clientY - resizeStart.current.y;
-        updateSize(win.id, {
-          width: Math.max(320, resizeStart.current.w + dw),
-          height: Math.max(200, resizeStart.current.h + dh),
-        });
+        const nextSize = clampWindowSize(
+          {
+            width: Math.max(320, resizeStart.current.w + dw),
+            height: Math.max(200, resizeStart.current.h + dh),
+          },
+          { width: container.clientWidth, height: container.clientHeight }
+        );
+        updateSize(win.id, nextSize);
       }
     };
 
@@ -167,7 +184,7 @@ export function Window({ window: win, containerRef }: WindowProps) {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     };
-  }, [win.id, containerRef, updatePosition, updateSize]);
+  }, [win.id, win.size, containerRef, updatePosition, updateSize]);
 
   if (win.isMinimized) return null;
 
@@ -180,7 +197,9 @@ export function Window({ window: win, containerRef }: WindowProps) {
       className={clsx(
         'glass-window window-enter flex flex-col overflow-hidden rounded-xl',
         win.isFocused && 'focused',
-        maximized ? 'absolute inset-3' : 'absolute'
+        maximized
+          ? 'absolute left-3 right-3 top-3 bottom-[var(--dock-reserve)]'
+          : 'absolute'
       )}
       style={
         maximized

@@ -12,6 +12,7 @@ import {
   Calculator,
   Image,
   FileType,
+  ListTodo,
 } from 'lucide-react';
 import { launchApp } from '@/lib/launchApp';
 import { APP_LABELS, SPOTLIGHT_APPS } from '@/lib/appIcons';
@@ -28,6 +29,7 @@ const APP_ICONS_MAP: Record<AppType, React.ReactNode> = {
   'image-viewer': <Image size={18} />,
   'pdf-viewer': <FileType size={18} />,
   settings: <Settings size={18} />,
+  todo: <ListTodo size={18} />,
 };
 
 interface SpotlightProps {

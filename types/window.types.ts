@@ -7,7 +7,8 @@ export type AppType =
   | 'file-manager'
   | 'image-viewer'
   | 'pdf-viewer'
-  | 'settings';
+  | 'settings'
+  | 'todo';
 
 export interface WindowInstance {
   id: string;

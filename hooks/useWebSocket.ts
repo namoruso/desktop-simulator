@@ -30,6 +30,9 @@ function applySnapshot(payload: SystemSnapshot) {
   useProcessStore.getState().updateFromSnapshot(snapshot);
   useMemoryStore.getState().updateFromSnapshot(snapshot, openWindows);
   useSystemStore.getState().setLastUpdate(snapshot.timestamp);
+  if (snapshot.battery) {
+    useSystemStore.getState().setBattery(snapshot.battery);
+  }
   if (snapshot.storage) {
     useStorageStore.getState().setSnapshot(snapshot.storage);
   }

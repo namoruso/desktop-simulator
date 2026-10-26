@@ -1,3 +1,11 @@
+export interface BatteryInfo {
+  hasBattery: boolean;
+  percent: number;
+  isCharging: boolean;
+  acConnected: boolean;
+  timeRemaining: number | null;
+}
+
 export interface SystemSnapshot {
   timestamp: number;
   cpu: {
@@ -23,6 +31,7 @@ export interface SystemSnapshot {
     swapUsedMB: number;
   };
   storage?: import('@/types/storage.types').StorageSnapshot;
+  battery?: BatteryInfo;
   processes: RawProcess[];
 }
 

@@ -3,12 +3,13 @@ import type { SystemSnapshot } from '@/types/system.types';
 import { collectStorage } from '@/lib/collectStorage';
 
 export async function collectSystemData(): Promise<SystemSnapshot> {
-  const [cpuLoad, mem, procs, cpuData, storage] = await Promise.all([
+  const [cpuLoad, mem, procs, cpuData, storage, batteryData] = await Promise.all([
     si.currentLoad(),
     si.mem(),
     si.processes(),
     si.cpu(),
     collectStorage().catch(() => undefined),
+    si.battery().catch(() => null),
   ]);
 
   const totalMB = Math.round(mem.total / 1024 / 1024);
@@ -67,6 +68,24 @@ export async function collectSystemData(): Promise<SystemSnapshot> {
       swapUsedMB: Math.round(mem.swapused / 1024 / 1024),
     },
     storage,
+    battery: batteryData?.hasBattery
+      ? {
+          hasBattery: true,
+          percent: Math.round(batteryData.percent ?? 0),
+          isCharging: !!batteryData.isCharging,
+          acConnected: !!batteryData.acConnected,
+          timeRemaining:
+            typeof batteryData.timeRemaining === 'number'
+              ? batteryData.timeRemaining
+              : null,
+        }
+      : {
+          hasBattery: false,
+          percent: 0,
+          isCharging: false,
+          acConnected: true,
+          timeRemaining: null,
+        },
     processes,
   };
 }

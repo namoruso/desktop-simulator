@@ -126,7 +126,7 @@ export function Settings() {
         {cat === 'appearance' && (
           <MacPage title="Appearance">
             <MacSettingsGroup>
-              <MacSettingsRow label="Accent color" hint="Highlights and focus rings">
+              <MacSettingsRow label="Accent color" hint="Highlights and focus rings" stacked>
                 <MacColorPicker
                   value={settings.accentColor}
                   onChange={settings.setAccentColor}

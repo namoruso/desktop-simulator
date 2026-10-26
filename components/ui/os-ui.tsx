@@ -1,7 +1,17 @@
 'use client';
 
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
+import {
+  Children,
+  isValidElement,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import { createPortal } from 'react-dom';
+import { ChevronDown } from 'lucide-react';
 
 /** macOS System Settings — grouped list container */
 export function MacSettingsGroup({
@@ -18,18 +28,25 @@ export function MacSettingsRow({
   label,
   hint,
   children,
+  stacked,
 }: {
   label: string;
   hint?: string;
   children: ReactNode;
+  stacked?: boolean;
 }) {
   return (
-    <div className="mac-settings-row">
+    <div
+      className={clsx(
+        'mac-settings-row',
+        stacked && 'mac-settings-row-stacked'
+      )}
+    >
       <div className="min-w-0">
         <div className="mac-settings-row-label">{label}</div>
         {hint && <p className="mac-settings-row-hint">{hint}</p>}
       </div>
-      <div className="shrink-0">{children}</div>
+      <div className={clsx(stacked ? 'w-full' : 'shrink-0')}>{children}</div>
     </div>
   );
 }
@@ -66,15 +83,119 @@ export function MacSelect({
   children: ReactNode;
   className?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<{ top: number; left: number; width: number }>();
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const listId = useId();
+
+  const options = parseSelectOptions(children);
+  const selected = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (!btnRef.current?.contains(e.target as Node)) {
+        const menu = document.getElementById(listId);
+        if (menu?.contains(e.target as Node)) return;
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open, listId]);
+
+  const toggle = () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    const el = btnRef.current;
+    if (el) {
+      const r = el.getBoundingClientRect();
+      setMenuStyle({
+        top: r.bottom + 4,
+        left: r.right - Math.max(r.width, 160),
+        width: Math.max(r.width, 160),
+      });
+    }
+    setOpen(true);
+  };
+
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={clsx('mac-select', className)}
-    >
-      {children}
-    </select>
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation();
+          toggle();
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+        className={clsx('mac-select flex items-center justify-between gap-2 text-left', className)}
+      >
+        <span className="truncate">{selected?.label ?? value}</span>
+        <ChevronDown
+          size={14}
+          className={clsx('shrink-0 text-[var(--text-muted)] transition', open && 'rotate-180')}
+        />
+      </button>
+      {open &&
+        menuStyle &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <ul
+            id={listId}
+            role="listbox"
+            className="mac-select-menu"
+            style={{
+              position: 'fixed',
+              top: menuStyle.top,
+              left: menuStyle.left,
+              width: menuStyle.width,
+              zIndex: 10000,
+            }}
+          >
+            {options.map((opt) => (
+              <li key={opt.value} role="option" aria-selected={opt.value === value}>
+                <button
+                  type="button"
+                  className={clsx(
+                    'mac-select-option',
+                    opt.value === value && 'mac-select-option-active'
+                  )}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                >
+                  {opt.label}
+                </button>
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
+    </>
   );
+}
+
+const ACCENT_PRESETS = [
+  '#0a84ff',
+  '#34c759',
+  '#ff9500',
+  '#ff3b30',
+  '#bf5af2',
+  '#64d2ff',
+  '#ffd60a',
+];
+
+function normalizeHex(raw: string): string {
+  const s = raw.trim();
+  if (/^#[0-9a-f]{6}$/i.test(s)) return s.toLowerCase();
+  if (/^[0-9a-f]{6}$/i.test(s)) return `#${s.toLowerCase()}`;
+  return '#0a84ff';
 }
 
 export function MacColorPicker({
@@ -84,20 +205,92 @@ export function MacColorPicker({
   value: string;
   onChange: (hex: string) => void;
 }) {
+  const color = normalizeHex(value);
+  const [hexDraft, setHexDraft] = useState(color);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setHexDraft(color);
+  }, [color]);
+
+  const commitHex = (raw: string) => {
+    const next = normalizeHex(raw);
+    if (/^#[0-9a-f]{6}$/i.test(next)) {
+      onChange(next);
+      setHexDraft(next);
+    }
+  };
+
   return (
-    <label className="mac-color-swatch" title="Choose accent color">
-      <span
-        className="mac-color-swatch-preview"
-        style={{ backgroundColor: value }}
-        aria-hidden
-      />
-      <input
-        type="color"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
+    <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+      <div className="flex items-center gap-1.5">
+        {ACCENT_PRESETS.map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            title={preset}
+            aria-label={`Accent ${preset}`}
+            onClick={() => onChange(preset)}
+            className={clsx(
+              'mac-color-preset',
+              color === preset && 'mac-color-preset-active'
+            )}
+            style={{ backgroundColor: preset }}
+          />
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          className="mac-color-swatch"
+          title="Open color picker"
+          onClick={() => inputRef.current?.click()}
+        >
+          <span
+            className="mac-color-swatch-preview"
+            style={{ backgroundColor: color }}
+            aria-hidden
+          />
+        </button>
+        <input
+          ref={inputRef}
+          type="color"
+          value={color}
+          className="sr-only"
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <input
+          type="text"
+          value={hexDraft}
+          spellCheck={false}
+          maxLength={7}
+          aria-label="Accent hex color"
+          className="mac-field w-[5.5rem] px-2 py-1.5 font-mono text-[12px] uppercase"
+          onChange={(e) => setHexDraft(e.target.value)}
+          onBlur={() => commitHex(hexDraft)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              commitHex(hexDraft);
+            }
+          }}
+        />
+      </div>
+    </div>
   );
+}
+
+function parseSelectOptions(children: ReactNode): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = [];
+  Children.forEach(children, (child) => {
+    if (isValidElement<{ value?: string; children?: ReactNode }>(child)) {
+      options.push({
+        value: String(child.props.value ?? ''),
+        label: String(child.props.children ?? child.props.value ?? ''),
+      });
+    }
+  });
+  return options;
 }
 
 export function MacRange({
